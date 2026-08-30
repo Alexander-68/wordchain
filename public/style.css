@@ -90,7 +90,7 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
 .md code { font-size: 13px; color: var(--accent); }
 .md pre { font-size: 13px; color: var(--dim); overflow-x: auto; }
 .md strong { color: var(--text); }
-.hint { color: var(--dim); font-size: 13px; margin: 10px 0 0; text-align: center; font-variant-numeric: tabular-nums; }
+.hint { color: var(--dim); font-size: 15px; margin: 10px 0 0; text-align: center; font-variant-numeric: tabular-nums; }
 .hint a { color: var(--accent); }
 #checkout { white-space: pre-line; }
 .solve { margin: 18px 0 0; }
