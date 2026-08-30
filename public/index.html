@@ -51,11 +51,26 @@
     <div class="field">
       <label for="checkword">Word check</label>
       <div class="solverow">
-        <input id="checkword" placeholder="any word" spellcheck="false" autocapitalize="none">
+        <span class="clearable">
+          <input id="checkword" placeholder="a word, or a list of words" spellcheck="false" autocapitalize="none">
+          <button type="button" class="clear" data-clear="checkword" title="clear" aria-label="clear">&times;</button>
+        </span>
         <button class="ghost" id="check" disabled>Check</button>
       </div>
     </div>
     <p class="hint" id="checkout"></p>
+
+    <div class="field solve">
+      <label for="checkfile">Word check from file</label>
+      <div class="solverow">
+        <span class="clearable">
+          <input type="file" id="checkfile" accept=".txt,.csv,text/plain" title="checks the first word on every line">
+          <button type="button" class="clear" data-clear="checkfile" title="clear" aria-label="clear">&times;</button>
+        </span>
+        <button class="ghost" id="checkfilebtn" disabled>Check</button>
+      </div>
+    </div>
+    <p class="hint" id="filecheckout"></p>
 
     <div class="field solve">
       <label for="startword">Longest possible chain</label>

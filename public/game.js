@@ -203,15 +203,42 @@ function fastForward() {
   setTimeout(step);
 }
 
+const wordsFromInput = (text) => text.toLowerCase().match(/[a-z][a-z'-]*/g) || [];
+// a file is one word per line: whatever follows the first separator is a definition, a count, a note
+const wordsFromFile = (text) =>
+  text.split(/\r?\n/).map((line) => wordsFromInput(line)[0]).filter(Boolean);
+
+/** Many words at once: how many are known, how many playable, which ones are missing. */
+function checkList(words, out) {
+  const unique = [...new Set(words)];
+  const absent = [], unplayable = [];
+  for (const word of unique) {
+    const entry = index.words.get(word);
+    if (!entry) absent.push(word);
+    else if (!entry.allowed || word.length < MIN_LENGTH) unplayable.push(word);
+  }
+  $(out).textContent =
+    `${unique.length.toLocaleString()} word${unique.length === 1 ? '' : 's'} checked`
+    + `${words.length > unique.length ? ` (${words.length.toLocaleString()} read, duplicates dropped)` : ''} — `
+    + `${(unique.length - absent.length).toLocaleString()} in the word list, `
+    + `${(unique.length - absent.length - unplayable.length).toLocaleString()} playable, `
+    + `${absent.length.toLocaleString()} absent.`
+    + (absent.length ? `\nAbsent: ${absent.join(', ')}` : '');
+}
+
 /** Look a word up: is it in the list, what does it mean, may it be played. */
-$('check').addEventListener('click', () => {
-  const word = $('checkword').value.trim().toLowerCase();
-  if (!word) return;
+function checkOne(word) {
   const entry = index.words.get(word);
   if (!entry) {
     const hint = nearest(index, word, { lastLetter: null, used: new Set() });
+    const singular = [word.replace(/ies$/, 'y'), word.replace(/(ch|sh|s|x|z)es$/, '$1'), word.replace(/s$/, '')]
+      .find((w) => w !== word && index.words.get(w));
     $('checkout').textContent = `"${word}" is not in the word list.`
-      + (hint ? ` Did you mean "${hint}"?` : '');
+      + (singular ? ` It looks like the plural of "${singular}" — the list holds singular nouns only.`
+        : hint ? ` Probably a misspelling — did you mean "${hint}"?`
+        : ` The list holds singular common English nouns, so it is probably not a noun`
+          + ` (an adjective, verb, adverb or pronoun), a proper name or a word derived from one ("american"),`
+          + ` or a plural form or spelling the list does not carry.`);
     return;
   }
   const why = word.length < MIN_LENGTH ? `shorter than ${MIN_LENGTH} letters`
@@ -221,8 +248,30 @@ $('check').addEventListener('click', () => {
     + `\n[${TIERS[entry.tierIdx].toLowerCase()}] `
     + (why ? `Not playable: ${why}.` : 'Playable.')
     + (!why && entry.tierIdx > maxTierIdx ? ` Outside the ${chosen('level')} vocabulary, so the computer never plays it.` : '');
+}
+
+$('check').addEventListener('click', () => {
+  const words = wordsFromInput($('checkword').value);
+  if (!words.length) return ($('checkout').textContent = '');
+  words.length === 1 ? checkOne(words[0]) : checkList(words, 'checkout');
+});
+
+$('checkfilebtn').addEventListener('click', async () => {
+  const file = $('checkfile').files[0];
+  if (!file) return ($('filecheckout').textContent = 'Pick a text file first.');
+  const words = wordsFromFile(await file.text());
+  $('filecheckout').textContent = words.length ? 'Checking…' : 'No words found in that file.';
+  if (words.length) checkList(words, 'filecheckout');
 });
 $('checkword').addEventListener('keydown', (e) => e.key === 'Enter' && $('check').click());
+
+// the × in each field wipes the field and the report under it
+for (const btn of document.querySelectorAll('.clear')) btn.addEventListener('click', () => {
+  const field = $(btn.dataset.clear);
+  field.value = '';
+  $(field.type === 'file' ? 'filecheckout' : 'checkout').textContent = '';
+  if (field.type !== 'file') field.focus();
+});
 
 /** The longest chain the word list allows, from a chosen word or from wherever it runs longest. */
 $('solve').addEventListener('click', () => {
@@ -306,7 +355,7 @@ $('about').addEventListener('click', async () => {
 
 const csv = await (await fetch(`/data/${DATA}`)).text();
 index = buildIndex(csv);
-$('start').disabled = $('solve').disabled = $('check').disabled = false;
+$('start').disabled = $('solve').disabled = $('check').disabled = $('checkfilebtn').disabled = false;
 $('start').textContent = 'Start game';
 
 // each vocabulary button says how many playable words it draws from, tiers being cumulative

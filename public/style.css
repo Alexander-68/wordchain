@@ -92,9 +92,22 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
 .md strong { color: var(--text); }
 .hint { color: var(--dim); font-size: 15px; margin: 10px 0 0; text-align: center; font-variant-numeric: tabular-nums; }
 .hint a { color: var(--accent); }
-#checkout { white-space: pre-line; }
+#checkout, #filecheckout { white-space: pre-line; overflow-wrap: anywhere; }
+#checkfile { min-width: 0; flex: 1; color: var(--dim); font-size: 13px; }
+#checkfile::file-selector-button {
+  margin-right: 8px; padding: 5px 10px; color: var(--text); background: transparent;
+  border: 1px solid var(--line); border-radius: 8px; font: inherit; cursor: pointer;
+}
 .solve { margin: 18px 0 0; }
 .solverow { display: flex; gap: 8px; }
+.clearable { position: relative; flex: 1; min-width: 0; display: flex; }
+.clearable input { flex: 1; min-width: 0; padding-right: 32px; }
+.clear {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  padding: 0 6px; line-height: 1; font-size: 18px; color: var(--dim);
+  background: transparent; border: 0; cursor: pointer;
+}
+.clear:hover { color: var(--text); }
 .solverow button { flex: none; }
 
 .players { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
