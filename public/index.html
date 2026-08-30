@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WordChain</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="app">
+  <header>
+    <h1>Word<span>Chain</span></h1>
+    <p class="sub">Nouns only, 3 letters or more. Each word starts with the last letter of the one before.
+      <button class="ghost small" id="about">About</button></p>
+  </header>
+
+  <div id="setup">
+  <section class="card">
+    <div class="field">
+      <label>Players</label>
+      <div class="opts" id="mode">
+        <button class="opt" data-mode="hh">Human vs Human</button>
+        <button class="opt is-on" data-mode="hc">Human vs Computer</button>
+        <button class="opt" data-mode="cc">Computer vs Computer</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Computer vocabulary</label>
+      <div class="opts" id="level">
+        <button class="opt" data-tier="1">Common</button>
+        <button class="opt is-on" data-tier="2">Familiar</button>
+        <button class="opt" data-tier="4">Expert</button>
+        <button class="opt" data-tier="5">Insane</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Computer difficulty</label>
+      <div class="opts" id="difficulty">
+        <button class="opt" data-diff="easy"
+          data-tip="Plays the ending that leaves you the most unused answers.">Easy</button>
+        <button class="opt is-on" data-diff="normal"
+          data-tip="Plays any word starting with the right letter, at random.">Normal</button>
+        <button class="opt" data-diff="hard"
+          data-tip="Plays the ending that leaves you the fewest unused answers.">Hard</button>
+      </div>
+    </div>
+    <button id="start" class="primary" disabled>Loading word list…</button>
+  </section>
+
+  <section class="card">
+    <div class="field">
+      <label for="checkword">Word check</label>
+      <div class="solverow">
+        <input id="checkword" placeholder="any word" spellcheck="false" autocapitalize="none">
+        <button class="ghost" id="check" disabled>Check</button>
+      </div>
+    </div>
+    <p class="hint" id="checkout"></p>
+
+    <div class="field solve">
+      <label for="startword">Longest possible chain</label>
+      <div class="solverow">
+        <input id="startword" placeholder="start word (optional)" spellcheck="false" autocapitalize="none">
+        <button class="ghost" id="solve" disabled>Build</button>
+      </div>
+    </div>
+    <p class="hint" id="solveout"></p>
+    <p class="hint" id="stats"></p>
+  </section>
+  </div>
+
+  <section id="board" class="card" hidden>
+    <div class="players">
+      <div class="player" id="p0"><span class="name"></span><span class="strikes"></span></div>
+      <div class="vs">vs</div>
+      <div class="player" id="p1"><span class="name"></span><span class="strikes"></span></div>
+    </div>
+
+    <div class="chainhead"><span>Chain</span><span id="count">0 words</span></div>
+    <ol class="chain" id="chain"></ol>
+
+    <div class="turn">
+      <div class="letter"><span id="letter">?</span><small id="avail"></small></div>
+      <form id="play" autocomplete="off">
+        <input id="word" placeholder="your noun (3+ letters)" spellcheck="false" autocapitalize="none">
+        <button class="primary" type="submit" id="submit">Play</button>
+        <button class="ghost" type="button" id="pause" hidden>Pause</button>
+        <button class="ghost" type="button" id="resign">I lose</button>
+      </form>
+    </div>
+
+    <div class="log" id="log" aria-live="polite"></div>
+    <button class="ghost wide" id="again" hidden>New game</button>
+  </section>
+
+  <!-- fixed-position, and outside #board so the setup buttons can use it while the board is hidden -->
+  <div class="tip" id="tip" role="tooltip" hidden></div>
+
+  <footer id="wordlist">Loading word list…</footer>
+
+  <dialog id="aboutbox">
+    <div class="md" id="aboutmd">Loading…</div>
+    <form method="dialog"><button class="ghost wide">Close</button></form>
+  </dialog>
+</main>
+<script type="module" src="game.js"></script>
+</body>
+</html>

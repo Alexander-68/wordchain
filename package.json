@@ -1,0 +1,11 @@
+{
+  "name": "wordchain-game",
+  "version": "0.1.0",
+  "description": "WordChain — English single-noun chain game (human/computer), served as plain JS + HTML.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "license": "MIT"
+}
