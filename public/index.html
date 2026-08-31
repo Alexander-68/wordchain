@@ -22,6 +22,7 @@
         <button class="opt" data-mode="hh">Human vs Human</button>
         <button class="opt is-on" data-mode="hc">Human vs Computer</button>
         <button class="opt" data-mode="cc">Computer vs Computer</button>
+        <button class="opt" data-mode="cl">Computer vs LLM</button>
       </div>
     </div>
     <div class="field">
@@ -112,6 +113,23 @@
   <div class="tip" id="tip" role="tooltip" hidden></div>
 
   <footer id="wordlist">Loading word list…</footer>
+
+  <dialog id="llmbox">
+    <form method="dialog" id="llmform">
+      <label for="llmurl">API base URL</label>
+      <input id="llmurl" value="https://openrouter.ai/api/v1" spellcheck="false" autocapitalize="none">
+      <label for="llmmodel">Model</label>
+      <input id="llmmodel" placeholder="openai/gpt-4o-mini" spellcheck="false" autocapitalize="none">
+      <label for="llmkey">API key</label>
+      <input id="llmkey" type="password" placeholder="sk-..." spellcheck="false" autocapitalize="none">
+      <p class="hint" id="llmout"></p>
+      <div class="solverow">
+        <button class="ghost" type="button" id="llmtest">Test key</button>
+        <button class="primary" type="button" id="llmplay">Play</button>
+        <button class="ghost" value="cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="aboutbox">
     <div class="md" id="aboutmd">Loading…</div>

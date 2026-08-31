@@ -6,6 +6,7 @@ const MODES = {
   hh: ['Player 1', 'Player 2'],
   hc: ['You', 'Computer'],
   cc: ['Computer 1', 'Computer 2'],
+  cl: ['Computer', 'LLM'],
 };
 
 let index, mode = 'hc', maxTierIdx = 2, difficulty = 'normal', game;
@@ -13,7 +14,8 @@ let index, mode = 'hc', maxTierIdx = 2, difficulty = 'normal', game;
 const chosen = (box) => $(box).querySelector('.is-on').firstChild.textContent.trim();
 
 const state = () => ({ index, lastLetter: game.chain.at(-1)?.at(-1) ?? null, used: game.used });
-const isComp = (i) => mode === 'cc' || (mode === 'hc' && i === 1);
+const isComp = (i) => mode === 'cc' || (mode === 'hc' && i === 1) || (mode === 'cl' && i === 0);
+const isLLM = (i) => mode === 'cl' && i === 1;
 
 function say(text, cls = '') {
   if (!text) return;
@@ -49,8 +51,8 @@ function render() {
     el.classList.toggle('is-turn', !game.over && i === game.turn);
     el.classList.toggle('is-out', game.over && game.loser === i);
   }
-  const human = !game.over && !isComp(game.turn);
-  const auto = mode === 'cc';
+  const human = !game.over && !isComp(game.turn) && !isLLM(game.turn);
+  const auto = mode === 'cc' || mode === 'cl';
   // the row keeps its shape while the computer thinks — controls dim instead of moving
   $('play').hidden = game.over;
   $('word').hidden = $('submit').hidden = auto;
@@ -60,7 +62,7 @@ function render() {
   $('word').placeholder = human ? 'your noun (3+ letters)' : 'thinking…';
   $('pause').hidden = !auto;
   $('pause').textContent = game.paused ? 'Play' : 'Pause';
-  $('resign').textContent = game.ff ? 'Stop' : auto ? 'Fast-forward' : 'I lose';
+  $('resign').textContent = game.ff ? 'Stop' : mode === 'cc' ? 'Fast-forward' : auto ? 'Stop game' : 'I lose';
   $('again').hidden = !game.over;
   if (human) $('word').focus();
 }
@@ -120,7 +122,9 @@ function accept(word) {
 
 /** Hand the turn to the computer, unless a computer-vs-computer game is paused. */
 function schedule() {
-  if (isComp(game.turn) && !game.paused && !game.over) setTimeout(computerTurn, 700);
+  if (game.paused || game.over) return;
+  if (isComp(game.turn)) setTimeout(computerTurn, 700);
+  else if (isLLM(game.turn)) setTimeout(llmTurn, 200);
 }
 
 function reject(reason) {
@@ -129,6 +133,7 @@ function reject(reason) {
   say(`Rejected: ${reason}. Strike ${game.strikes[i]} of 3.`, 'bad');
   if (game.strikes[i] >= 3) return end(i, 'three rejected words in a row');
   render();
+  schedule();
 }
 
 function computerTurn() {
@@ -170,7 +175,83 @@ $('resign').addEventListener('click', () => {
   if (game.over) return;
   if (game.ff) return (game.ff = false);        // stop fast-forwarding, play on from here
   if (mode === 'cc') return fastForward();
-  end(game.turn, 'gave up');
+  end(game.turn, mode === 'cl' ? 'the game was stopped' : 'gave up');
+});
+
+// ---- LLM player: any OpenAI-compatible /chat/completions endpoint ----------
+
+const llm = JSON.parse(localStorage.getItem('llm') || 'null') || {};
+const RULES = `You are a player in WordChain. Rules:
+- Each word must be a single common English noun, singular, at least 3 letters, letters only.
+- Your word must start with the last letter of the previous word.
+- No word may be played twice in a game.
+Reply with ONE word and nothing else. If you cannot find a word, reply exactly: I lose.
+Never explain, never apologise, never add punctuation or quotes.`;
+
+async function ask(messages, max_tokens = 8) {
+  const res = await fetch(`${llm.url.replace(/\/+$/, '')}/chat/completions`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${llm.key}` },
+    body: JSON.stringify({ model: llm.model, messages, max_tokens, temperature: 0.7 }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error?.message || `HTTP ${res.status}`);
+  return (body.choices?.[0]?.message?.content || '').trim();
+}
+
+function prompt() {
+  const last = game.chain.at(-1);
+  if (!last) return [{ role: 'system', content: RULES },
+    { role: 'user', content: 'You open the game. Play any singular English noun of 3 or more letters.' }];
+  // only words starting with the letter it must play can collide, so the rest is dead prompt weight
+  const letter = last.at(-1);
+  const taken = game.chain.filter((w) => w[0] === letter);
+  return [
+    { role: 'system', content: RULES },
+    { role: 'user', content: `Previous word: "${last}". Your word must start with "${letter}".`
+      + (taken.length ? `\nAlready played, do not repeat: ${taken.join(', ')}` : '') },
+  ];
+}
+
+async function llmTurn() {
+  if (game.over || game.paused || !isLLM(game.turn)) return;
+  const turnId = game.chain.length + ':' + game.strikes[1];
+  let reply;
+  try {
+    reply = await ask(prompt());
+  } catch (e) {
+    return end(1, `the API call failed — ${e.message}`);
+  }
+  if (game.over || game.paused || turnId !== game.chain.length + ':' + game.strikes[1]) return;
+  if (/^i lose\b/i.test(reply)) return end(1, 'it gave up');
+  const word = (reply.toLowerCase().match(/[a-z][a-z'-]*/) || [''])[0];
+  const res = validate(word, state());
+  if (!res.ok) return reject(`"${reply}" — ${res.reason}`);
+  say(describe(res.word, game.chain.length), 'good');
+  accept(res.word);
+}
+
+$('llmtest').addEventListener('click', async () => {
+  readLLM();
+  $('llmout').textContent = 'Testing…';
+  try {
+    const reply = await ask([{ role: 'user', content: 'Reply with the word: ok' }], 5);
+    $('llmout').textContent = `Works — the model replied "${reply}".`;
+  } catch (e) {
+    $('llmout').textContent = `Failed: ${e.message}`;
+  }
+});
+
+function readLLM() {
+  Object.assign(llm, { url: $('llmurl').value.trim(), model: $('llmmodel').value.trim(), key: $('llmkey').value.trim() });
+  localStorage.setItem('llm', JSON.stringify(llm));
+}
+
+$('llmplay').addEventListener('click', () => {
+  readLLM();
+  if (!llm.url || !llm.model || !llm.key) return ($('llmout').textContent = 'Fill in URL, model and key.');
+  $('llmbox').close();
+  begin();
 });
 
 /** Play out the rest of a computer game — no move delay, no per-move log, count ticking. */
@@ -317,6 +398,17 @@ for (const [box, key, set] of [
 }
 
 $('start').addEventListener('click', () => {
+  if (mode === 'cl') {
+    $('llmurl').value = llm.url || $('llmurl').value;
+    $('llmmodel').value = llm.model || '';
+    $('llmkey').value = llm.key || '';
+    $('llmout').textContent = '';
+    return $('llmbox').showModal();
+  }
+  begin();
+});
+
+function begin() {
   game = { chain: [], used: new Set(), strikes: [0, 0], turn: 0, over: false, paused: false, ff: false, loser: null };
   $('setup').hidden = true;
   $('board').hidden = false;
@@ -325,7 +417,7 @@ $('start').addEventListener('click', () => {
   if (mode !== 'cc') say('Open with any singular English noun — 3 letters or more.');
   render();
   schedule();
-});
+}
 
 /** Just enough Markdown for ABOUT.md: headings, lists, bold, inline code. */
 const markdown = (src) => src

@@ -197,3 +197,8 @@ input:focus { outline: none; border-color: var(--accent2); box-shadow: var(--rin
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+#llmform { display: grid; gap: 6px; }
+#llmform label { font-size: 13px; color: var(--dim); margin-top: 8px; }
+#llmform input { width: 100%; }
+#llmform .solverow { margin-top: 14px; }
