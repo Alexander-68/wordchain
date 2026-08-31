@@ -193,12 +193,19 @@ const textOf = (c) => (typeof c === 'string' ? c : Array.isArray(c) ? c.map((p) 
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// The provider's shared pool throttles us every few words, so pace the calls: widen the
+// gap between requests whenever we are refused, and let it decay back while we are not.
+let gap = 0, nextAt = 0;
+const widen = (ms) => { gap = Math.min(Math.max(ms, gap * 2, 1500), 30000); };
+
 async function ask(messages, max_tokens = 1024) {
   const url = `${llm.url.replace(/\/+$/, '')}/chat/completions`;
   const req = { model: llm.model, messages, max_tokens, temperature: 0.7 };
   // 429 here is usually the provider's shared pool, not our quota — it clears in a second or two
   for (let attempt = 0; ; attempt++) {
-    console.log('[llm] request', url, req);
+    await sleep(Math.max(0, nextAt - Date.now()));
+    nextAt = Date.now() + gap;
+    console.log('[llm] request', url, req, gap ? `(gap ${gap}ms)` : '');
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${llm.key}` },
@@ -207,12 +214,16 @@ async function ask(messages, max_tokens = 1024) {
     const raw = await res.text();
     const body = (() => { try { return JSON.parse(raw); } catch { return {}; } })();
     console.log('[llm] response', res.status, Object.fromEntries(res.headers), raw);
-    if (res.status === 429 && attempt < 3) {
-      const wait = Number(res.headers.get('retry-after')) * 1000 || 1000 * 2 ** attempt;
-      console.log(`[llm] rate-limited, retrying in ${wait}ms`);
-      await sleep(wait);
-      continue;
+    if (res.status === 429) {
+      widen(Number(res.headers.get('retry-after')) * 1000 || 0);
+      if (attempt < 6) {
+        console.log(`[llm] rate-limited, gap now ${gap}ms, retrying`);
+        say(`Rate-limited upstream — waiting ${Math.round(gap / 1000)}s…`);
+        nextAt = Date.now() + gap;
+        continue;
+      }
     }
+    if (res.ok) gap = gap < 300 ? 0 : Math.round(gap * 0.8);   // decay over several good calls, not in one step
     if (!res.ok) throw new Error(body.error?.message || `HTTP ${res.status} — ${raw.slice(0, 200)}`);
     const choice = body.choices?.[0] || {};
     const text = textOf(choice.message?.content).trim();
