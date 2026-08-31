@@ -161,6 +161,9 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
   border-radius: 16px; background: linear-gradient(140deg, var(--accent), var(--accent2));
   box-shadow: 0 6px 20px color-mix(in srgb, var(--accent2) 22%, transparent);
 }
+button.letter { font: inherit; border: 0; padding: 0; color: var(--bg); cursor: default; }
+button.letter.is-hint { cursor: pointer; }
+button.letter.is-hint:hover { filter: brightness(1.1); }
 .letter small { font-size: 10px; font-weight: 600; opacity: .7; margin-top: 4px; font-variant-numeric: tabular-nums; }
 #play { flex: 1; display: flex; gap: 8px; flex-wrap: wrap; }
 #play .primary { width: auto; padding: 12px 22px; }

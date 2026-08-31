@@ -41,6 +41,7 @@ function render() {
   const left = available(index, letter, game.used);
   $('avail').textContent = left.toLocaleString();
   $('avail').title = `${left.toLocaleString()} unplayed words start with this letter`;
+  $('hint').classList.toggle('is-hint', canHint());
   for (const i of [0, 1]) {
     const el = $('p' + i);
     el.querySelector('.name').textContent = MODES[mode][i];
@@ -103,6 +104,28 @@ for (const box of ['level', 'difficulty']) {
   });
   for (const ev of ['pointerleave', 'focusout']) $(box).addEventListener(ev, hideTip);
 }
+
+// three hints per game, human vs computer only: the letter pill becomes a button
+const canHint = () => mode === 'hc' && !game.over && game.turn === 0 && game.hints > 0;
+
+const hintTip = () => canHint()
+  ? `Click to get a hint — ${game.hints} hint${game.hints === 1 ? '' : 's'} left.`
+  : (mode === 'hc' && !game.over && game.turn === 0 ? 'No hints left. ' : '')
+    + `${available(index, game.chain.at(-1)?.at(-1) ?? null, game.used).toLocaleString()} unplayed words start with this letter.`;
+
+for (const ev of ['pointerover', 'focusin']) $('hint').addEventListener(ev, () => showTip($('hint'), hintTip()));
+for (const ev of ['pointerleave', 'focusout']) $('hint').addEventListener(ev, hideTip);
+
+$('hint').addEventListener('click', () => {
+  if (!canHint()) return;
+  const word = pickMove(index, { ...state(), maxTierIdx, difficulty: 'hard' });
+  if (!word) return say('No hint available — no unplayed word starts with this letter.', 'warn');
+  game.hints--;
+  $('word').value = word;
+  say(`Hint: "${word}". ${game.hints} hint${game.hints === 1 ? '' : 's'} left.`, 'warn');
+  render();
+  showTip($('hint'), hintTip());
+});
 
 function end(loser, why) {
   game.over = true;
@@ -443,7 +466,7 @@ $('start').addEventListener('click', () => {
 });
 
 function begin() {
-  game = { chain: [], used: new Set(), strikes: [0, 0], turn: 0, over: false, paused: false, ff: false, loser: null };
+  game = { chain: [], used: new Set(), strikes: [0, 0], hints: 3, turn: 0, over: false, paused: false, ff: false, loser: null };
   $('setup').hidden = true;
   $('board').hidden = false;
   $('log').innerHTML = '';
