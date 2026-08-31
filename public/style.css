@@ -202,3 +202,4 @@ input:focus { outline: none; border-color: var(--accent2); box-shadow: var(--rin
 #llmform label { font-size: 13px; color: var(--dim); margin-top: 8px; }
 #llmform input { width: 100%; }
 #llmform .solverow { margin-top: 14px; }
+#llmform .solverow .primary { width: auto; padding: 12px 22px; }  /* .primary is width:100%, which overflows the row */

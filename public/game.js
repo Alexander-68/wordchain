@@ -188,15 +188,38 @@ const RULES = `You are a player in WordChain. Rules:
 Reply with ONE word and nothing else. If you cannot find a word, reply exactly: I lose.
 Never explain, never apologise, never add punctuation or quotes.`;
 
-async function ask(messages, max_tokens = 8) {
-  const res = await fetch(`${llm.url.replace(/\/+$/, '')}/chat/completions`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${llm.key}` },
-    body: JSON.stringify({ model: llm.model, messages, max_tokens, temperature: 0.7 }),
-  });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.error?.message || `HTTP ${res.status}`);
-  return (body.choices?.[0]?.message?.content || '').trim();
+/** Some providers return content as an array of parts, not a string. */
+const textOf = (c) => (typeof c === 'string' ? c : Array.isArray(c) ? c.map((p) => p?.text || '').join('') : '');
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function ask(messages, max_tokens = 1024) {
+  const url = `${llm.url.replace(/\/+$/, '')}/chat/completions`;
+  const req = { model: llm.model, messages, max_tokens, temperature: 0.7 };
+  // 429 here is usually the provider's shared pool, not our quota — it clears in a second or two
+  for (let attempt = 0; ; attempt++) {
+    console.log('[llm] request', url, req);
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${llm.key}` },
+      body: JSON.stringify(req),
+    });
+    const raw = await res.text();
+    const body = (() => { try { return JSON.parse(raw); } catch { return {}; } })();
+    console.log('[llm] response', res.status, Object.fromEntries(res.headers), raw);
+    if (res.status === 429 && attempt < 3) {
+      const wait = Number(res.headers.get('retry-after')) * 1000 || 1000 * 2 ** attempt;
+      console.log(`[llm] rate-limited, retrying in ${wait}ms`);
+      await sleep(wait);
+      continue;
+    }
+    if (!res.ok) throw new Error(body.error?.message || `HTTP ${res.status} — ${raw.slice(0, 200)}`);
+    const choice = body.choices?.[0] || {};
+    const text = textOf(choice.message?.content).trim();
+    // a reasoning model can spend the whole budget thinking and hand back empty content
+    if (!text) throw new Error(`empty reply (finish_reason: ${choice.finish_reason || 'none'})`);
+    return text;
+  }
 }
 
 function prompt() {
@@ -235,7 +258,7 @@ $('llmtest').addEventListener('click', async () => {
   readLLM();
   $('llmout').textContent = 'Testing…';
   try {
-    const reply = await ask([{ role: 'user', content: 'Reply with the word: ok' }], 5);
+    const reply = await ask([{ role: 'user', content: 'Reply with the word: ok' }], 1024);
     $('llmout').textContent = `Works — the model replied "${reply}".`;
   } catch (e) {
     $('llmout').textContent = `Failed: ${e.message}`;
