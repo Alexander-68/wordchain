@@ -42,8 +42,9 @@ function render() {
   $('avail').textContent = left.toLocaleString();
   $('avail').title = `${left.toLocaleString()} unplayed words start with this letter`;
   $('hint').classList.toggle('is-hint', canHint());
-  for (const i of [0, 1]) {
-    const el = $('p' + i);
+  // the player who opens sits on the left, so the board reads in play order
+  seats().forEach((i, slot) => {
+    const el = $('p' + slot);
     el.querySelector('.name').textContent = MODES[mode][i];
     const dots = el.querySelector('.strikes');
     dots.innerHTML = '<i></i><i></i><i></i>';
@@ -51,7 +52,7 @@ function render() {
     dots.title = `${game.strikes[i]} of 3 strikes`;
     el.classList.toggle('is-turn', !game.over && i === game.turn);
     el.classList.toggle('is-out', game.over && game.loser === i);
-  }
+  });
   const human = !game.over && !isComp(game.turn) && !isLLM(game.turn);
   const auto = mode === 'cc' || mode === 'cl';
   // the row keeps its shape while the computer thinks — controls dim instead of moving
@@ -68,8 +69,9 @@ function render() {
   if (human) $('word').focus();
 }
 
-/** Player 0 always opens, so the chain alternates. */
-const playedBy = (i) => MODES[mode][i % 2];
+/** The opener plays chain word 0, and from there the turn alternates. */
+const seats = () => (game?.opener ? [1, 0] : [0, 1]);
+const playedBy = (i) => MODES[mode][(game.opener + i) % 2];
 const describe = (word, i) =>
   `${playedBy(i)} played "${word}" — ${index.words.get(word)?.definition || 'no definition'}`;
 
@@ -485,12 +487,14 @@ $('start').addEventListener('click', () => {
 });
 
 function begin() {
-  game = { chain: [], used: new Set(), strikes: [0, 0], hints: 3, turn: mode === 'cl' && llmFirst ? 1 : 0, lastReject: null, over: false, paused: false, ff: false, loser: null };
+  const opener = mode === 'cl' && llmFirst ? 1 : 0;
+  game = { chain: [], used: new Set(), strikes: [0, 0], hints: 3, turn: opener, opener, lastReject: null, over: false, paused: false, ff: false, loser: null };
   $('setup').hidden = true;
   $('board').hidden = false;
   $('log').innerHTML = '';
   say(`${chosen('mode')} · ${chosen('level')} vocabulary · ${chosen('difficulty')} difficulty`);
-  if (mode !== 'cc') say('Open with any singular English noun — 3 letters or more.');
+  if (mode === 'cl') say(`${MODES[mode][game.opener]} opens.`);
+  else if (mode !== 'cc') say('Open with any singular English noun — 3 letters or more.');
   render();
   schedule();
 }
