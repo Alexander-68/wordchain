@@ -288,9 +288,9 @@ async function ask(messages, max_tokens = 4096, signal) {
     });
     const raw = await res.text();
     const body = (() => { try { return JSON.parse(raw); } catch { return {}; } })();
-    // a reasoning model's encrypted blob is kilobytes of nothing to read — log the rest
+    // a reasoning model's encrypted blobs and signatures are kilobytes of nothing to read
     console.log('[llm] response', res.status, Object.fromEntries(res.headers),
-      raw.replace(/"data":"[^"]*"/g, '"data":"<encrypted>"'));
+      raw.replace(/"[^"\\]{200,}"/g, (m) => `"<${m.length - 2} chars>"`));
     // OpenRouter reports an upstream failure as HTTP 200 with an error body, so trust the body first
     const code = body.error?.code || res.status;
     if (code === 429 || code === 502 || code === 503) {
