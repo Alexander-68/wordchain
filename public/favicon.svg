@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="g" x1="0" y1="32" x2="32" y2="0">
+      <stop offset="0" stop-color="#6ee7b7"/>
+      <stop offset="1" stop-color="#7aa2ff"/>
+    </linearGradient>
+    <g id="lnk"><ellipse rx="7" ry="4.2" transform="rotate(-45)"/></g>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#0b0f19"/>
+  <g fill="none">
+    <use href="#lnk" x="9" y="23" stroke="#0b0f19" stroke-width="6.5"/>
+    <use href="#lnk" x="9" y="23" stroke="url(#g)" stroke-width="3"/>
+    <use href="#lnk" x="16" y="16" stroke="#0b0f19" stroke-width="6.5"/>
+    <use href="#lnk" x="16" y="16" stroke="url(#g)" stroke-width="3"/>
+    <use href="#lnk" x="23" y="9" stroke="#0b0f19" stroke-width="6.5"/>
+    <use href="#lnk" x="23" y="9" stroke="url(#g)" stroke-width="3"/>
+  </g>
+</svg>
