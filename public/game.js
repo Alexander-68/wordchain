@@ -251,7 +251,9 @@ async function ask(messages, max_tokens = 4096, signal) {
     });
     const raw = await res.text();
     const body = (() => { try { return JSON.parse(raw); } catch { return {}; } })();
-    console.log('[llm] response', res.status, Object.fromEntries(res.headers), raw);
+    // a reasoning model's encrypted blob is kilobytes of nothing to read — log the rest
+    console.log('[llm] response', res.status, Object.fromEntries(res.headers),
+      raw.replace(/"data":"[^"]*"/g, '"data":"<encrypted>"'));
     if (res.status === 429) {
       widen(Number(res.headers.get('retry-after')) * 1000 || 0);
       if (attempt < 6) {
@@ -261,7 +263,9 @@ async function ask(messages, max_tokens = 4096, signal) {
         continue;
       }
     }
-    if (res.ok) gap = gap < 300 ? 0 : Math.round(gap * 0.8);   // decay over several good calls, not in one step
+    // every good call takes a bite out of the gap, so a settled pace keeps creeping faster
+    // until the pool refuses again — the refusal is the only signal we get about the limit
+    if (res.ok) gap = gap < 400 ? 0 : Math.round(gap * 0.7);
     if (!res.ok) throw new Error(body.error?.message || `HTTP ${res.status} — ${raw.slice(0, 200)}`);
     const choice = body.choices?.[0] || {};
     const text = textOf(choice.message?.content).trim();
@@ -501,6 +505,7 @@ function begin() {
   $('setup').hidden = true;
   $('board').hidden = false;
   $('log').innerHTML = '';
+  nextAt = 0;                               // a new game asks straight away, whatever the last one learned
   say(`${chosen('mode')} · ${chosen('level')} vocabulary · ${chosen('difficulty')} difficulty`);
   if (mode === 'cl') say(`${MODES[mode][game.opener]} opens.`);
   else if (mode !== 'cc') say('Open with any singular English noun — 3 letters or more.');
