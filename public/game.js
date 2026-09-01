@@ -132,6 +132,7 @@ $('hint').addEventListener('click', () => {
 function end(loser, why) {
   if (game.over) return;
   inflight?.abort();                        // stop paying for a move nobody will play
+  setBusy(null);
   game.over = true;
   game.loser = loser;
   say(`${MODES[mode][loser]} loses — ${why}. ${MODES[mode][1 - loser]} wins with ${game.chain.length} words.`, 'big');
@@ -148,11 +149,42 @@ function accept(word) {
   schedule();
 }
 
+// ---- "thinking" badge: one seat at a time, counting up or counting down ----
+let busy = null, busyTimer = 0;             // { i, since } while working, { i, until } while waiting out a gap
+
+function setBusy(next) {
+  busy = next;
+  clearInterval(busyTimer);
+  busyTimer = next ? setInterval(paintBusy, 100) : 0;
+  paintBusy();
+}
+
+function paintBusy() {
+  if (!game) return;
+  seats().forEach((i, slot) => {
+    const el = $('p' + slot).querySelector('.think');
+    const on = busy && busy.i === i && !game.over && !game.paused;
+    el.hidden = !on;
+    if (on) el.textContent = busy.until
+      ? `${Math.max(0, Math.ceil((busy.until - Date.now()) / 1000))}s`
+      : `${((Date.now() - busy.since) / 1000).toFixed(1)}s`;
+  });
+}
+
 /** Hand the turn to the computer, unless a computer-vs-computer game is paused. */
 function schedule() {
+  setBusy(null);
   if (game.paused || game.over) return;
-  if (isComp(game.turn)) setTimeout(computerTurn, 700);
-  else if (isLLM(game.turn)) setTimeout(llmTurn, 200);
+  if (isComp(game.turn)) {
+    // the LLM's pacing gap is dead time either way — spend it on the computer's move instead,
+    // so the wait shows as the computer thinking and the LLM can ask the moment its turn opens
+    const wait = Math.max(700, mode === 'cl' ? nextAt - Date.now() : 0);
+    setBusy({ i: game.turn, until: Date.now() + wait });
+    setTimeout(computerTurn, wait);
+  } else if (isLLM(game.turn)) {
+    setBusy({ i: game.turn, since: Date.now() });
+    setTimeout(llmTurn, 200);
+  }
 }
 
 function reject(reason) {
@@ -240,8 +272,10 @@ async function ask(messages, max_tokens = 4096, signal) {
   const req = { model: llm.model, messages, max_tokens, temperature: 0.7 };
   // 429 here is usually the provider's shared pool, not our quota — it clears in a second or two
   for (let attempt = 0; ; attempt++) {
+    if (game && !game.over && nextAt > Date.now()) setBusy({ i: game.turn, until: nextAt });
     await sleep(Math.max(0, nextAt - Date.now()));
     nextAt = Date.now() + gap;
+    if (game && !game.over) setBusy({ i: game.turn, since: Date.now() });
     console.log('[llm] request', url, req, gap ? `(gap ${gap}ms)` : '');
     const res = await fetch(url, {
       method: 'POST',
@@ -262,6 +296,7 @@ async function ask(messages, max_tokens = 4096, signal) {
         console.log(`[llm] ${code}, gap now ${gap}ms, retrying`);
         say(`${code === 429 ? 'Rate-limited' : 'Upstream busy'} — waiting ${Math.round(gap / 1000)}s…`);
         nextAt = Date.now() + gap;
+        if (game && !game.over) setBusy({ i: game.turn, until: nextAt });
         continue;
       }
     }
