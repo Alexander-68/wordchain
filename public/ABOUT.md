@@ -58,17 +58,17 @@ and whether it may be played — with the reason when it may not:
 **Build** walks the whole word list and hands back the longest chain it allows, to download one word
 per line. It takes well under a second. The field beside it pins the opening word — leave it blank
 and the chain starts wherever it runs longest. The vocabulary setting bounds the build, and here it
-is a hard wall: Common gives about 1,000 words, Familiar about 3,900, Insane **23,224**.
+is a hard wall: Common gives about 1,000 words, Familiar about 4,000, Insane **23,366**.
 
 That number is not a good guess — it is the proven maximum for this word list. Letters are places,
 words are roads between them, and each road may be driven once. Some letters have far more roads out
-than in (`c`: 5,135 words start with it, 405 end with it) and some are the reverse (`e`: 8,449 in,
-1,956 out), so a chain must strand the excess. The game works out the smallest possible number to
+than in (`c`: 5,164 words start with it, 407 end with it) and some are the reverse (`e`: 8,479 in,
+1,961 out), so a chain must strand the excess. The game works out the smallest possible number to
 strand and then walks everything that is left.
 
 ## What counts as a word
 
-The list is **SEN**, the Single English Nouns dataset: 61,537 words, 50,681 of them playable at
+The list is **SEN**, the Single English Nouns dataset: 61,545 words, 50,921 of them playable at
 three letters or more. Rejected words stay in the file with their reason, which is how the referee
 can answer with more than "not found".
 
@@ -76,6 +76,6 @@ Singular nouns only. Plurals, proper nouns, verbs, adjectives and inflected form
 words a tagged corpus almost always uses as something other than a noun, like `run`, `bill` and
 `federal`, even though a noun sense exists. American spelling is the kept form.
 
-The playable words by tier: 439 core · 2,272 common · 6,920 familiar · 11,982 uncommon ·
-13,103 rare · 15,965 obscure. That last band is words the frequency tables have never seen — real
+The playable words by tier: 445 core · 2,365 common · 7,027 familiar · 12,004 uncommon ·
+13,114 rare · 15,966 obscure. That last band is words the frequency tables have never seen — real
 words, some too new (`lootbox`) and some genuinely arcane (`ophicleide`). They are what Insane adds.
