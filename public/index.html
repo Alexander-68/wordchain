@@ -123,6 +123,13 @@
       <input id="llmmodel" placeholder="openai/gpt-4o-mini" spellcheck="false" autocapitalize="none">
       <label for="llmkey">API key</label>
       <input id="llmkey" type="password" placeholder="sk-..." spellcheck="false" autocapitalize="none">
+      <label>Reasoning effort</label>
+      <div class="opts" id="effort">
+        <button type="button" class="opt" data-effort="auto" title="Send nothing — the model's own default.">Auto</button>
+        <button type="button" class="opt" data-effort="low" title="Short thinking. Fastest and cheapest.">Low</button>
+        <button type="button" class="opt is-on" data-effort="medium" title="A balanced budget — enough to plan a move without spending the whole reply on it.">Medium</button>
+        <button type="button" class="opt" data-effort="high" title="Long thinking. Slow, and it can burn the whole token budget before answering.">High</button>
+      </div>
       <p class="hint" id="llmout"></p>
       <div class="solverow">
         <button class="ghost" type="button" id="llmtest">Test key</button>

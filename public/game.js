@@ -242,6 +242,7 @@ $('resign').addEventListener('click', () => {
 
 const llm = JSON.parse(localStorage.getItem('llm') || 'null') || {};
 let llmFirst = false;        // fairness option: let the LLM play the opening word
+let effort = llm.effort || 'medium';   // reasoning_effort, the one knob most providers agree on
 const RULES = `You are a player in WordChain. Rules:
 - Each word must be a single common English noun, singular, at least 3 letters, letters only.
 - Your word must start with the last letter of the previous word.
@@ -266,10 +267,12 @@ let gap = 0, nextAt = 0;
 const widen = (ms) => { gap = Math.min(Math.max(ms, gap * 2, 1500), 30000); };
 
 let inflight = null;         // the LLM request in flight, so ending the game can drop it
+let lastReasoning = 0;       // reasoning tokens the last reply burned, when the provider reports them
 
 async function ask(messages, max_tokens = 4096, signal) {
   const url = `${llm.url.replace(/\/+$/, '')}/chat/completions`;
   const req = { model: llm.model, messages, max_tokens, temperature: 0.7 };
+  if (effort !== 'auto') req.reasoning_effort = effort;
   // 429 here is usually the provider's shared pool, not our quota — it clears in a second or two
   for (let attempt = 0; ; attempt++) {
     if (game && !game.over && nextAt > Date.now()) setBusy({ i: game.turn, until: nextAt });
@@ -300,15 +303,30 @@ async function ask(messages, max_tokens = 4096, signal) {
         continue;
       }
     }
+    // not every gateway knows reasoning_effort — drop it and ask again rather than lose the turn
+    if (code === 400 && 'reasoning_effort' in req && /reasoning|effort|parameter|unknown|unsupported/i.test(raw)) {
+      delete req.reasoning_effort;
+      console.log('[llm] provider rejected reasoning_effort, retrying without it');
+      continue;
+    }
     // every good call takes a bite out of the gap, so a settled pace keeps creeping faster
     // until the pool refuses again — the refusal is the only signal we get about the limit
     if (res.ok && !body.error) gap = gap < 400 ? 0 : Math.round(gap * 0.7);
     if (!res.ok || body.error)
       throw new Error(`${body.error?.message || raw.slice(0, 200) || 'no body'} (${code})`);
+    lastReasoning = body.usage?.completion_tokens_details?.reasoning_tokens || 0;
     const choice = body.choices?.[0] || {};
     const text = textOf(choice.message?.content).trim();
-    // a reasoning model can spend the whole budget thinking and hand back empty content
-    if (!text) throw new Error(`empty reply (finish_reason: ${choice.finish_reason || 'none'})`);
+    // a reasoning model can spend the whole budget thinking and hand back empty content —
+    // that is overthinking, not a lost game, so buy it more room and ask once more
+    if (!text) {
+      if (choice.finish_reason === 'length' && req.max_tokens < 32768) {
+        req.max_tokens *= 2;
+        say(`It spent the whole budget thinking — retrying with ${req.max_tokens} tokens.`, 'warn');
+        continue;
+      }
+      throw new Error(`empty reply (finish_reason: ${choice.finish_reason || 'none'})`);
+    }
     return text;
   }
 }
@@ -354,7 +372,7 @@ async function llmTurn() {
     game.lastReject = { word: reply, reason: res.reason };
     return reject(`"${reply}" — ${res.reason}`);
   }
-  say(describe(res.word, game.chain.length), 'good');
+  say(describe(res.word, game.chain.length) + (lastReasoning ? `. Reasoning tokens: ${lastReasoning}` : ''), 'good');
   accept(res.word);
 }
 
@@ -370,7 +388,7 @@ $('llmtest').addEventListener('click', async () => {
 });
 
 function readLLM() {
-  Object.assign(llm, { url: $('llmurl').value.trim(), model: $('llmmodel').value.trim(), key: $('llmkey').value.trim() });
+  Object.assign(llm, { url: $('llmurl').value.trim(), model: $('llmmodel').value.trim(), key: $('llmkey').value.trim(), effort });
   localStorage.setItem('llm', JSON.stringify(llm));
 }
 
@@ -517,6 +535,7 @@ for (const [box, key, set] of [
   ['mode', 'mode', (v) => (mode = v)],
   ['level', 'tier', (v) => (maxTierIdx = +v)],
   ['difficulty', 'diff', (v) => (difficulty = v)],
+  ['effort', 'effort', (v) => (effort = v)],
 ]) {
   $(box).addEventListener('click', (e) => {
     const btn = e.target.closest('.opt');
@@ -532,6 +551,7 @@ $('start').addEventListener('click', () => {
     $('llmmodel').value = llm.model || '';
     $('llmkey').value = llm.key || '';
     $('llmout').textContent = '';
+    for (const b of $('effort').children) b.classList.toggle('is-on', b.dataset.effort === effort);
     return $('llmbox').showModal();
   }
   begin();
