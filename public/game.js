@@ -130,6 +130,8 @@ $('hint').addEventListener('click', () => {
 });
 
 function end(loser, why) {
+  if (game.over) return;
+  inflight?.abort();                        // stop paying for a move nobody will play
   game.over = true;
   game.loser = loser;
   say(`${MODES[mode][loser]} loses — ${why}. ${MODES[mode][1 - loser]} wins with ${game.chain.length} words.`, 'big');
@@ -231,7 +233,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let gap = 0, nextAt = 0;
 const widen = (ms) => { gap = Math.min(Math.max(ms, gap * 2, 1500), 30000); };
 
-async function ask(messages, max_tokens = 4096) {
+let inflight = null;         // the LLM request in flight, so ending the game can drop it
+
+async function ask(messages, max_tokens = 4096, signal) {
   const url = `${llm.url.replace(/\/+$/, '')}/chat/completions`;
   const req = { model: llm.model, messages, max_tokens, temperature: 0.7 };
   // 429 here is usually the provider's shared pool, not our quota — it clears in a second or two
@@ -243,6 +247,7 @@ async function ask(messages, max_tokens = 4096) {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${llm.key}` },
       body: JSON.stringify(req),
+      signal,
     });
     const raw = await res.text();
     const body = (() => { try { return JSON.parse(raw); } catch { return {}; } })();
@@ -290,10 +295,14 @@ async function llmTurn() {
   if (game.over || game.paused || !isLLM(game.turn)) return;
   const turnId = game.chain.length + ':' + game.strikes[1];
   let reply;
+  inflight = new AbortController();
   try {
-    reply = await ask(prompt());
+    reply = await ask(prompt(), 4096, inflight.signal);
   } catch (e) {
+    if (game.over) return;                  // the game was stopped under us; the abort is not a loss
     return end(1, `the API call failed — ${e.message}`);
+  } finally {
+    inflight = null;
   }
   if (game.over || game.paused || turnId !== game.chain.length + ':' + game.strikes[1]) return;
   if (/^i lose\b/i.test(reply)) return end(1, 'it gave up');
