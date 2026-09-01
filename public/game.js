@@ -254,19 +254,22 @@ async function ask(messages, max_tokens = 4096, signal) {
     // a reasoning model's encrypted blob is kilobytes of nothing to read — log the rest
     console.log('[llm] response', res.status, Object.fromEntries(res.headers),
       raw.replace(/"data":"[^"]*"/g, '"data":"<encrypted>"'));
-    if (res.status === 429) {
+    // OpenRouter reports an upstream failure as HTTP 200 with an error body, so trust the body first
+    const code = body.error?.code || res.status;
+    if (code === 429 || code === 502 || code === 503) {
       widen(Number(res.headers.get('retry-after')) * 1000 || 0);
       if (attempt < 6) {
-        console.log(`[llm] rate-limited, gap now ${gap}ms, retrying`);
-        say(`Rate-limited upstream — waiting ${Math.round(gap / 1000)}s…`);
+        console.log(`[llm] ${code}, gap now ${gap}ms, retrying`);
+        say(`${code === 429 ? 'Rate-limited' : 'Upstream busy'} — waiting ${Math.round(gap / 1000)}s…`);
         nextAt = Date.now() + gap;
         continue;
       }
     }
     // every good call takes a bite out of the gap, so a settled pace keeps creeping faster
     // until the pool refuses again — the refusal is the only signal we get about the limit
-    if (res.ok) gap = gap < 400 ? 0 : Math.round(gap * 0.7);
-    if (!res.ok) throw new Error(body.error?.message || `HTTP ${res.status} — ${raw.slice(0, 200)}`);
+    if (res.ok && !body.error) gap = gap < 400 ? 0 : Math.round(gap * 0.7);
+    if (!res.ok || body.error)
+      throw new Error(`${body.error?.message || raw.slice(0, 200) || 'no body'} (${code})`);
     const choice = body.choices?.[0] || {};
     const text = textOf(choice.message?.content).trim();
     // a reasoning model can spend the whole budget thinking and hand back empty content
@@ -304,7 +307,7 @@ async function llmTurn() {
     reply = await ask(prompt(), 4096, inflight.signal);
   } catch (e) {
     if (game.over) return;                  // the game was stopped under us; the abort is not a loss
-    return end(1, `the API call failed — ${e.message}`);
+    return end(1, `the API call failed: ${e.message}`);
   } finally {
     inflight = null;
   }
