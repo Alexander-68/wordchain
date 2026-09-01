@@ -211,7 +211,13 @@ const RULES = `You are a player in WordChain. Rules:
 - Your word must start with the last letter of the previous word.
 - No word may be played twice in a game.
 Reply with ONE word and nothing else. If you cannot find a word, reply exactly: I lose.
-Never explain, never apologise, never add punctuation or quotes.`;
+Never explain, never apologise, never add punctuation or quotes.
+
+Your opponent is a strong engine. It picks the word whose last letter leaves you the
+fewest answers, so it will keep handing you Y, X, Z, K, U, J and the like until you run
+out. An obvious word such as "table" gives it a free "e" and hands it the initiative.
+Play the same way: prefer a word that ends on a scarce letter, keep a few of your own
+answers to those letters in reserve, and do not spend them on an easy ending.`;
 
 /** Some providers return content as an array of parts, not a string. */
 const textOf = (c) => (typeof c === 'string' ? c : Array.isArray(c) ? c.map((p) => p?.text || '').join('') : '');
@@ -315,13 +321,14 @@ function readLLM() {
   localStorage.setItem('llm', JSON.stringify(llm));
 }
 
-$('llmplay').addEventListener('click', () => {
-  readLLM();
-  if (!llm.url || !llm.model || !llm.key) return ($('llmout').textContent = 'Fill in URL, model and key.');
-  llmFirst = $('llmfirst').checked;
-  $('llmbox').close();
-  begin();
-});
+for (const [id, first] of [['llmplay', false], ['llmplayfirst', true]])
+  $(id).addEventListener('click', () => {
+    readLLM();
+    if (!llm.url || !llm.model || !llm.key) return ($('llmout').textContent = 'Fill in URL, model and key.');
+    llmFirst = first;
+    $('llmbox').close();
+    begin();
+  });
 
 /** Play out the rest of a computer game — no move delay, no per-move log, count ticking. */
 function fastForward() {
