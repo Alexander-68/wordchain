@@ -335,19 +335,26 @@ function prompt() {
   const last = game.chain.at(-1);
   // a rejected word is only useful to the model if it hears why, and what a third strike costs
   const strikes = game.strikes[1];
+  // words the model has already been struck for are worth repeating back: it keeps offering
+  // the same adjective otherwise, and a strike is expensive
+  const bad = (l) => [...game.rejected].filter(([w]) => !l || w[0] === l)
+    .map(([w, why]) => `${w} (${why})`);
   const feedback = game.lastReject
     ? `\nYour last answer "${game.lastReject.word}" was rejected: ${game.lastReject.reason}.`
       + ` That is strike ${strikes} of 3 — ${3 - strikes} more and you lose. Answer with a different word.`
     : '';
+  const rejected = (l) => bad(l).length ? `\nRejected earlier, do not play these: ${bad(l).join(', ')}` : '';
   if (!last) return [{ role: 'system', content: RULES },
-    { role: 'user', content: 'You open the game. Play any singular English noun of 3 or more letters.' + feedback }];
+    { role: 'user', content: 'You open the game. Play any singular English noun of 3 or more letters.'
+      + rejected(null) + feedback }];
   // only words starting with the letter it must play can collide, so the rest is dead prompt weight
   const letter = last.at(-1);
   const taken = game.chain.filter((w) => w[0] === letter);
   return [
     { role: 'system', content: RULES },
     { role: 'user', content: `Previous word: "${last}". Your word must start with "${letter}".`
-      + (taken.length ? `\nAlready played, do not repeat: ${taken.join(', ')}` : '') + feedback },
+      + (taken.length ? `\nAlready played, do not repeat: ${taken.join(', ')}` : '')
+      + rejected(letter) + feedback },
   ];
 }
 
@@ -370,6 +377,7 @@ async function llmTurn() {
   const res = validate(word, state());
   if (!res.ok) {
     game.lastReject = { word: reply, reason: res.reason };
+    if (word) game.rejected.set(word, res.reason);
     return reject(`"${reply}" — ${res.reason}`);
   }
   say(describe(res.word, game.chain.length) + (lastReasoning ? `. Reasoning tokens: ${lastReasoning}` : ''), 'good');
@@ -559,7 +567,7 @@ $('start').addEventListener('click', () => {
 
 function begin() {
   const opener = mode === 'cl' && llmFirst ? 1 : 0;
-  game = { chain: [], used: new Set(), strikes: [0, 0], hints: 3, turn: opener, opener, lastReject: null, over: false, paused: false, ff: false, loser: null };
+  game = { chain: [], used: new Set(), strikes: [0, 0], hints: 3, turn: opener, opener, lastReject: null, rejected: new Map(), over: false, paused: false, ff: false, loser: null };
   $('setup').hidden = true;
   $('board').hidden = false;
   $('log').innerHTML = '';
