@@ -138,6 +138,7 @@ function accept(word) {
   game.chain.push(word);
   game.used.add(word);
   game.strikes[game.turn] = 0;
+  game.lastReject = null;
   game.turn = 1 - game.turn;
   render();
   schedule();
@@ -204,6 +205,7 @@ $('resign').addEventListener('click', () => {
 // ---- LLM player: any OpenAI-compatible /chat/completions endpoint ----------
 
 const llm = JSON.parse(localStorage.getItem('llm') || 'null') || {};
+let llmFirst = false;        // fairness option: let the LLM play the opening word
 const RULES = `You are a player in WordChain. Rules:
 - Each word must be a single common English noun, singular, at least 3 letters, letters only.
 - Your word must start with the last letter of the previous word.
@@ -221,7 +223,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let gap = 0, nextAt = 0;
 const widen = (ms) => { gap = Math.min(Math.max(ms, gap * 2, 1500), 30000); };
 
-async function ask(messages, max_tokens = 1024) {
+async function ask(messages, max_tokens = 4096) {
   const url = `${llm.url.replace(/\/+$/, '')}/chat/completions`;
   const req = { model: llm.model, messages, max_tokens, temperature: 0.7 };
   // 429 here is usually the provider's shared pool, not our quota — it clears in a second or two
@@ -258,15 +260,21 @@ async function ask(messages, max_tokens = 1024) {
 
 function prompt() {
   const last = game.chain.at(-1);
+  // a rejected word is only useful to the model if it hears why, and what a third strike costs
+  const strikes = game.strikes[1];
+  const feedback = game.lastReject
+    ? `\nYour last answer "${game.lastReject.word}" was rejected: ${game.lastReject.reason}.`
+      + ` That is strike ${strikes} of 3 — ${3 - strikes} more and you lose. Answer with a different word.`
+    : '';
   if (!last) return [{ role: 'system', content: RULES },
-    { role: 'user', content: 'You open the game. Play any singular English noun of 3 or more letters.' }];
+    { role: 'user', content: 'You open the game. Play any singular English noun of 3 or more letters.' + feedback }];
   // only words starting with the letter it must play can collide, so the rest is dead prompt weight
   const letter = last.at(-1);
   const taken = game.chain.filter((w) => w[0] === letter);
   return [
     { role: 'system', content: RULES },
     { role: 'user', content: `Previous word: "${last}". Your word must start with "${letter}".`
-      + (taken.length ? `\nAlready played, do not repeat: ${taken.join(', ')}` : '') },
+      + (taken.length ? `\nAlready played, do not repeat: ${taken.join(', ')}` : '') + feedback },
   ];
 }
 
@@ -283,7 +291,10 @@ async function llmTurn() {
   if (/^i lose\b/i.test(reply)) return end(1, 'it gave up');
   const word = (reply.toLowerCase().match(/[a-z][a-z'-]*/) || [''])[0];
   const res = validate(word, state());
-  if (!res.ok) return reject(`"${reply}" — ${res.reason}`);
+  if (!res.ok) {
+    game.lastReject = { word: reply, reason: res.reason };
+    return reject(`"${reply}" — ${res.reason}`);
+  }
   say(describe(res.word, game.chain.length), 'good');
   accept(res.word);
 }
@@ -292,7 +303,7 @@ $('llmtest').addEventListener('click', async () => {
   readLLM();
   $('llmout').textContent = 'Testing…';
   try {
-    const reply = await ask([{ role: 'user', content: 'Reply with the word: ok' }], 1024);
+    const reply = await ask([{ role: 'user', content: 'Reply with the word: ok' }]);
     $('llmout').textContent = `Works — the model replied "${reply}".`;
   } catch (e) {
     $('llmout').textContent = `Failed: ${e.message}`;
@@ -307,6 +318,7 @@ function readLLM() {
 $('llmplay').addEventListener('click', () => {
   readLLM();
   if (!llm.url || !llm.model || !llm.key) return ($('llmout').textContent = 'Fill in URL, model and key.');
+  llmFirst = $('llmfirst').checked;
   $('llmbox').close();
   begin();
 });
@@ -466,7 +478,7 @@ $('start').addEventListener('click', () => {
 });
 
 function begin() {
-  game = { chain: [], used: new Set(), strikes: [0, 0], hints: 3, turn: 0, over: false, paused: false, ff: false, loser: null };
+  game = { chain: [], used: new Set(), strikes: [0, 0], hints: 3, turn: mode === 'cl' && llmFirst ? 1 : 0, lastReject: null, over: false, paused: false, ff: false, loser: null };
   $('setup').hidden = true;
   $('board').hidden = false;
   $('log').innerHTML = '';

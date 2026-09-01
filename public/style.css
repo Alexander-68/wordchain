@@ -204,5 +204,7 @@ input:focus { outline: none; border-color: var(--accent2); box-shadow: var(--rin
 #llmform { display: grid; gap: 6px; }
 #llmform label { font-size: 13px; color: var(--dim); margin-top: 8px; }
 #llmform input { width: 100%; }
+#llmform .check { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; }
+#llmform .check input { width: auto; }
 #llmform .solverow { margin-top: 14px; }
 #llmform .solverow .primary { width: auto; padding: 12px 22px; }  /* .primary is width:100%, which overflows the row */
