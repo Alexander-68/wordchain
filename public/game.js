@@ -270,12 +270,15 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let gap = 0, nextAt = 0;
 const widen = (ms) => { gap = Math.min(Math.max(ms, gap * 2, 1500), 30000); };
 
+let sendTemp = true;   // reasoning models allow only the default temperature; cleared on first refusal
+let tokenKey = 'max_tokens';  // newer models take max_completion_tokens instead; flipped on first refusal
 let inflight = null;         // the LLM request in flight, so ending the game can drop it
 let lastReasoning = 0;       // reasoning tokens the last reply burned, when the provider reports them
 
 async function ask(messages, max_tokens = 4096, signal) {
   const url = `${llm.url.replace(/\/+$/, '')}/chat/completions`;
-  const req = { model: llm.model, messages, max_tokens, temperature: 0.7 };
+  const req = { model: llm.model, messages, [tokenKey]: max_tokens };
+  if (sendTemp) req.temperature = 0.7;
   if (effort !== 'auto') req.reasoning_effort = effort;
   // 429 here is usually the provider's shared pool, not our quota — it clears in a second or two
   for (let attempt = 0; ; attempt++) {
@@ -307,8 +310,22 @@ async function ask(messages, max_tokens = 4096, signal) {
         continue;
       }
     }
+    if (res.status === 400 && sendTemp && /temperature/.test(raw)) {
+      sendTemp = false;
+      delete req.temperature;
+      console.log('[llm] provider rejected temperature, retrying without it');
+      continue;
+    }
+    // some models renamed the token budget — take the hint and keep the new name for the session
+    if (res.status === 400 && tokenKey === 'max_tokens' && /max_completion_tokens/.test(raw)) {
+      tokenKey = 'max_completion_tokens';
+      req.max_completion_tokens = req.max_tokens;
+      delete req.max_tokens;
+      console.log('[llm] provider wants max_completion_tokens, retrying');
+      continue;
+    }
     // not every gateway knows reasoning_effort — drop it and ask again rather than lose the turn
-    if (code === 400 && 'reasoning_effort' in req && /reasoning|effort|parameter|unknown|unsupported/i.test(raw)) {
+    if (res.status === 400 && 'reasoning_effort' in req && /reasoning|effort|parameter|unknown|unsupported/i.test(raw)) {
       delete req.reasoning_effort;
       console.log('[llm] provider rejected reasoning_effort, retrying without it');
       continue;
@@ -324,9 +341,9 @@ async function ask(messages, max_tokens = 4096, signal) {
     // a reasoning model can spend the whole budget thinking and hand back empty content —
     // that is overthinking, not a lost game, so buy it more room and ask once more
     if (!text) {
-      if (choice.finish_reason === 'length' && req.max_tokens < 32768) {
-        req.max_tokens *= 2;
-        say(`It spent the whole budget thinking — retrying with ${req.max_tokens} tokens.`, 'warn');
+      if (choice.finish_reason === 'length' && req[tokenKey] < 32768) {
+        req[tokenKey] *= 2;
+        say(`It spent the whole budget thinking — retrying with ${req[tokenKey]} tokens.`, 'warn');
         continue;
       }
       throw new Error(`empty reply (finish_reason: ${choice.finish_reason || 'none'})`);
