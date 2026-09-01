@@ -44,6 +44,9 @@ Strikes are for words that are wrong, not for words that are misspelled.
 - **Three rejected words in a row.** One valid word resets the count.
 - The computer resigns when it has no legal word left.
 
+However it ends, the log offers the game back as two text files: the chain, one word per line,
+and the transcript — every move, hint, rejection and strike, in the order they happened.
+
 ## Word check
 
 Type any word and the checker says whether it is in the list, what it means, which tier it sits in,

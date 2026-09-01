@@ -79,6 +79,9 @@ written for the player.
 - **Three rejected words in a row.** A valid word resets the count.
 - The computer resigns when it has no legal word left.
 
+However it ends, the log offers the game back as two text files: the chain, one word per line,
+and the transcript — every move, hint, rejection and strike, in the order they happened.
+
 ## What counts as a word
 
 The word list is [SEN](../WordChain-dataset) (`data/sen-2026-09-02.csv`, 61,568 rows, 8.6 MB) — the

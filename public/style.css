@@ -197,6 +197,7 @@ input:focus { outline: none; border-color: var(--accent2); box-shadow: var(--rin
 .msg.warn, .msg.warn:last-child { color: var(--warn); }
 .msg.good:last-child { color: var(--accent); }
 .msg.big { font-size: 17px; color: var(--text); font-weight: 650; }
+.msg a { color: var(--accent); }
 
 @media (max-width: 560px) {
   .app { padding: 28px 14px 44px; }

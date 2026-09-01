@@ -136,7 +136,37 @@ function end(loser, why) {
   game.over = true;
   game.loser = loser;
   say(`${MODES[mode][loser]} loses — ${why}. ${MODES[mode][1 - loser]} wins with ${game.chain.length} words.`, 'big');
+  offerSaves();
   render();
+}
+
+/** A download link for a text file, built on the spot. */
+function saveLink(text, name, label) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  a.download = name;
+  a.textContent = label;
+  return a;
+}
+
+/**
+ * Game over: the chain and the transcript, to keep. The transcript is the log itself — every
+ * move, hint, rejection and strike already went through `say()` — under a dated heading; the
+ * log's own first line carries the mode, vocabulary and difficulty.
+ */
+function offerSaves() {
+  const now = new Date();
+  const local = new Date(now - now.getTimezoneOffset() * 60000);   // name the file by the wall clock
+  const stamp = local.toISOString().slice(0, 16).replace('T', '-').replace(':', '');
+  const transcript = `WordChain — ${now.toLocaleString()}\n\n`
+    + [...$('log').children].map((p) => p.textContent).join('\n') + '\n';
+  const line = document.createElement('p');
+  line.className = 'msg';
+  line.append('Save this game: ',
+    saveLink(game.chain.join('\n') + '\n', `wordchain-${stamp}.txt`, `chain (${game.chain.length} words)`),
+    ' · ', saveLink(transcript, `wordchain-${stamp}-log.txt`, 'transcript'));
+  $('log').append(line);
+  $('log').scrollTop = $('log').scrollHeight;
 }
 
 function accept(word) {
@@ -587,11 +617,7 @@ $('solve').addEventListener('click', () => {
     const chain = longestChain(index, first || null, maxTierIdx);   // the vocabulary setting, no fallback
     $('solveout').textContent =
       `${chain.length.toLocaleString()} words in the ${chosen('level')} vocabulary, ${chain[0]} → ${chain.at(-1)} — `;
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(new Blob([chain.join('\n') + '\n'], { type: 'text/plain' }));
-    link.download = `wordchain-${chain[0]}-${chain.length}.txt`;
-    link.textContent = 'download';
-    $('solveout').append(link);
+    $('solveout').append(saveLink(chain.join('\n') + '\n', `wordchain-${chain[0]}-${chain.length}.txt`, 'download'));
     $('solve').disabled = false;
     $('solve').textContent = 'Build';
   });
