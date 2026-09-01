@@ -1,7 +1,7 @@
-import { buildIndex, validate, pickMove, available, nearest, longestChain, TIERS, MIN_LENGTH } from './rules.js';
+import { buildIndex, validate, pickMove, available, nearest, longestChain, mark, TIERS, MIN_LENGTH } from './rules.js';
 
 const $ = (id) => document.getElementById(id);
-const DATA = 'sen-2026-09-01.csv';                 // the word list; its date is the SEN version
+const DATA = 'sen-2026-09-02.csv';                 // the word list; its date is the SEN version
 const MODES = {
   hh: ['Player 1', 'Player 2'],
   hc: ['You', 'Computer'],
@@ -141,7 +141,7 @@ function end(loser, why) {
 
 function accept(word) {
   game.chain.push(word);
-  game.used.add(word);
+  mark(index, game.used, word);
   game.strikes[game.turn] = 0;
   game.lastReject = null;
   game.turn = 1 - game.turn;
@@ -489,7 +489,7 @@ function fastForward() {
       const word = pickMove(index, { ...state(), maxTierIdx, difficulty });
       if (!word) return done('no word found');
       game.chain.push(word);
-      game.used.add(word);
+      mark(index, game.used, word);
       game.turn = 1 - game.turn;
     }
     showCount();

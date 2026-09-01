@@ -1,9 +1,9 @@
 // Self-check: node test.js
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildIndex, validate, pickMove, nearest, longestChain } from './public/rules.js';
+import { buildIndex, validate, pickMove, nearest, longestChain, mark } from './public/rules.js';
 
-const index = buildIndex(readFileSync('data/sen-2026-09-01.csv', 'utf8'));
+const index = buildIndex(readFileSync('data/sen-2026-09-02.csv', 'utf8'));
 const used = new Set(['dog']);
 const at = (lastLetter) => ({ index, lastLetter, used });
 
@@ -18,6 +18,19 @@ assert.equal(validate('ox', at('o')).reason, 'too short — 3 letters minimum');
 assert.equal(validate('colour', at('c')).suggest, 'color');    // UK spelling -> US
 assert.equal(validate('run', at('r')).ok, false);              // verb, not a noun
 assert.equal(validate('happy', at('h')).ok, false);            // adjective
+
+// spelling variants are one word: either is playable, but only once per chain
+assert.equal(validate('whisky', at('w')).ok, true);
+assert.equal(validate('whiskey', at('w')).ok, true);
+const spelt = new Set();
+mark(index, spelt, 'whiskey');
+assert.equal(validate('whisky', { index, lastLetter: 'w', used: spelt }).reason, 'already played in this chain');
+const spelt2 = new Set();
+mark(index, spelt2, 'whisky');
+assert.equal(validate('whiskey', { index, lastLetter: 'w', used: spelt2 }).reason, 'already played in this chain');
+// only the word pointed at is offered to the computer, so a chain can never hold both
+assert.ok(!index.byStart.get('w').includes('whisky'));
+assert.ok(index.byStart.get('w').includes('whiskey'));
 
 // a typo answers with the word meant, not a strike
 const near = (word, lastLetter) => nearest(index, word, { lastLetter, used });

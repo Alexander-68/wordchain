@@ -36,8 +36,14 @@ export function parseCSV(text) {
 
 /**
  * Index of the SEN dataset:
- *   words   Map word -> { allowed, reason, suggest, tier, tierIdx, definition, end }
+ *   words   Map word -> { allowed, reason, suggest, tier, tierIdx, definition, end, same }
  *   byStart Map letter -> allowed words starting with it, best (most common) first
+ *   variants Map word -> every spelling of it, itself included
+ *
+ * `same_word_as` points a spelling at the one the dataset treats as the same word ("whisky" ->
+ * "whiskey"). Both are playable, but only one of them per chain, so only the word pointed at is
+ * offered to the computer and counted in the chain, and playing either marks the whole group
+ * used (see `mark`).
  */
 export function buildIndex(csvText) {
   const rows = parseCSV(csvText);
@@ -58,15 +64,30 @@ export function buildIndex(csvText) {
       zipf: parseFloat(r[h.zipf]) || 0,
       definition: r[h.definition],
       end: word[word.length - 1],
+      same: r[h.same_word_as] || word,
     };
     words.set(word, entry);
-    if (allowed) {
+    if (allowed && !r[h.same_word_as]) {
       if (!byStart.has(word[0])) byStart.set(word[0], []);
       byStart.get(word[0]).push(word);
     }
   }
   for (const list of byStart.values()) list.sort((a, b) => words.get(b).zipf - words.get(a).zipf);
-  return { words, byStart };
+  const variants = new Map();
+  for (const [word, entry] of words) {
+    if (!entry.allowed) continue;
+    const group = variants.get(entry.same) ?? [];
+    variants.set(entry.same, group);
+    group.push(word);
+  }
+  for (const group of [...variants.values()]) for (const w of group) variants.set(w, group);
+  return { words, byStart, variants };
+}
+
+/** Record a played word — and every other spelling of it, which is now played too. */
+export function mark(index, used, word) {
+  for (const w of index.variants.get(word) ?? [word]) used.add(w);
+  used.add(word);
 }
 
 /**
