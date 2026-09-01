@@ -241,8 +241,12 @@ $('resign').addEventListener('click', () => {
 // ---- LLM player: any OpenAI-compatible /chat/completions endpoint ----------
 
 const llm = JSON.parse(localStorage.getItem('llm') || 'null') || {};
+// API keys live in sessionStorage — they die with the tab, unlike the rest of the settings
+const keys = JSON.parse(sessionStorage.getItem('llmkeys') || '{}');
+llm.key = keys[llm.url] || '';
+localStorage.setItem('llm', JSON.stringify({ ...llm, key: undefined }));   // drop any key an older build left on disk
 let llmFirst = false;        // fairness option: let the LLM play the opening word
-let effort = llm.effort || 'medium';   // reasoning_effort, the one knob most providers agree on
+let effort = llm.effort || 'low';   // reasoning_effort, the one knob most providers agree on
 const RULES = `You are a player in WordChain. Rules:
 - Each word must be a single common English noun, singular, at least 3 letters, letters only.
 - Your word must start with the last letter of the previous word.
@@ -395,9 +399,48 @@ $('llmtest').addEventListener('click', async () => {
   }
 });
 
+// each provider keeps its own model and key, so switching the URL doesn't lose them
+const DEFAULT_MODEL = {
+  'https://openrouter.ai/api/v1': 'openai/gpt-4o-mini',
+  'https://api.openai.com/v1': 'gpt-4o-mini',
+  'https://api.deepseek.com/v1': 'deepseek-chat',
+  'https://api.anthropic.com/v1': 'claude-sonnet-4-5',
+};
+
 function readLLM() {
   Object.assign(llm, { url: $('llmurl').value.trim(), model: $('llmmodel').value.trim(), key: $('llmkey').value.trim(), effort });
-  localStorage.setItem('llm', JSON.stringify(llm));
+  llm.byUrl = { ...llm.byUrl, [llm.url]: { model: llm.model } };
+  keys[llm.url] = llm.key;
+  sessionStorage.setItem('llmkeys', JSON.stringify(keys));
+  localStorage.setItem('llm', JSON.stringify({ ...llm, key: undefined }));
+}
+
+/** The provider picker just writes the URL; the input stays the source of truth. */
+$('llmprovider').addEventListener('change', () => {
+  const url = $('llmprovider').value;
+  if (!url) return $('llmurl').focus();          // "Custom" — leave the URL for the user to type
+  $('llmurl').value = url;
+  $('llmurl').dispatchEvent(new Event('change'));
+});
+
+/** Swapping the provider swaps in whatever that provider was last used with. */
+$('llmurl').addEventListener('change', () => {
+  const url = $('llmurl').value.trim();
+  if (url === llm.url) return;
+  if (llm.url) {
+    llm.byUrl = { ...llm.byUrl, [llm.url]: { model: $('llmmodel').value.trim() } };
+    keys[llm.url] = $('llmkey').value.trim();
+  }
+  $('llmmodel').value = llm.byUrl?.[url]?.model || DEFAULT_MODEL[url] || '';
+  $('llmkey').value = keys[url] || '';
+  $('llmout').textContent = '';
+  llm.url = url;
+  syncProvider();
+});
+
+/** Keeps the picker showing whichever provider the URL currently points at. */
+function syncProvider() {
+  $('llmprovider').value = [...$('llmprovider').options].some((o) => o.value === $('llmurl').value.trim()) ? $('llmurl').value.trim() : '';
 }
 
 for (const [id, first] of [['llmplay', false], ['llmplayfirst', true]])
@@ -505,7 +548,7 @@ $('checkword').addEventListener('keydown', (e) => e.key === 'Enter' && $('check'
 for (const btn of document.querySelectorAll('.clear')) btn.addEventListener('click', () => {
   const field = $(btn.dataset.clear);
   field.value = '';
-  $(field.type === 'file' ? 'filecheckout' : 'checkout').textContent = '';
+  if (btn.dataset.report) $(btn.dataset.report).textContent = '';
   if (field.type !== 'file') field.focus();
 });
 
@@ -556,6 +599,7 @@ for (const [box, key, set] of [
 $('start').addEventListener('click', () => {
   if (mode === 'cl') {
     $('llmurl').value = llm.url || $('llmurl').value;
+    syncProvider();
     $('llmmodel').value = llm.model || '';
     $('llmkey').value = llm.key || '';
     $('llmout').textContent = '';

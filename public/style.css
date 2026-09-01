@@ -214,5 +214,11 @@ input:focus { outline: none; border-color: var(--accent2); box-shadow: var(--rin
 #llmform { display: grid; gap: 6px; }
 #llmform label { font-size: 13px; color: var(--dim); margin-top: 8px; }
 #llmform input { width: 100%; }
+.urlrow { display: flex; gap: 8px; }
+.urlrow select {
+  flex: none; padding: 12px 10px; font: inherit; color: var(--text);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
+}
+.urlrow select:focus { outline: none; border-color: var(--accent2); box-shadow: var(--ring); }
 #llmform .solverow { margin-top: 14px; flex-wrap: wrap; }
 #llmform .solverow .primary { width: auto; padding: 12px 18px; }  /* .primary is width:100%, which overflows the row */

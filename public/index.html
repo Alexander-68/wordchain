@@ -55,7 +55,7 @@
       <div class="solverow">
         <span class="clearable">
           <input id="checkword" placeholder="a word, or a list of words" spellcheck="false" autocapitalize="none">
-          <button type="button" class="clear" data-clear="checkword" title="clear" aria-label="clear">&times;</button>
+          <button type="button" class="clear" data-clear="checkword" data-report="checkout" title="clear" aria-label="clear">&times;</button>
         </span>
         <button class="ghost" id="check" disabled>Check</button>
       </div>
@@ -67,7 +67,7 @@
       <div class="solverow">
         <span class="clearable">
           <input type="file" id="checkfile" accept=".txt,.csv,text/plain" title="checks the first word on every line">
-          <button type="button" class="clear" data-clear="checkfile" title="clear" aria-label="clear">&times;</button>
+          <button type="button" class="clear" data-clear="checkfile" data-report="filecheckout" title="clear" aria-label="clear">&times;</button>
         </span>
         <button class="ghost" id="checkfilebtn" disabled>Check</button>
       </div>
@@ -118,16 +118,28 @@
   <dialog id="llmbox">
     <form method="dialog" id="llmform">
       <label for="llmurl">API base URL</label>
-      <input id="llmurl" value="https://openrouter.ai/api/v1" spellcheck="false" autocapitalize="none">
+      <div class="urlrow">
+        <select id="llmprovider" aria-label="Provider">
+          <option value="https://openrouter.ai/api/v1">OpenRouter</option>
+          <option value="https://api.openai.com/v1">OpenAI</option>
+          <option value="https://api.deepseek.com/v1">DeepSeek</option>
+          <option value="https://api.anthropic.com/v1">Anthropic</option>
+          <option value="">Custom</option>
+        </select>
+        <input id="llmurl" value="https://openrouter.ai/api/v1" spellcheck="false" autocapitalize="none">
+      </div>
       <label for="llmmodel">Model</label>
-      <input id="llmmodel" placeholder="openai/gpt-4o-mini" spellcheck="false" autocapitalize="none">
+      <span class="clearable">
+        <input id="llmmodel" placeholder="openai/gpt-4o-mini" spellcheck="false" autocapitalize="none">
+        <button type="button" class="clear" data-clear="llmmodel" title="clear" aria-label="clear">&times;</button>
+      </span>
       <label for="llmkey">API key</label>
       <input id="llmkey" type="password" placeholder="sk-..." spellcheck="false" autocapitalize="none">
       <label>Reasoning effort</label>
       <div class="opts" id="effort">
         <button type="button" class="opt" data-effort="auto" title="Send nothing — the model's own default.">Auto</button>
-        <button type="button" class="opt" data-effort="low" title="Short thinking. Fastest and cheapest.">Low</button>
-        <button type="button" class="opt is-on" data-effort="medium" title="A balanced budget — enough to plan a move without spending the whole reply on it.">Medium</button>
+        <button type="button" class="opt is-on" data-effort="low" title="Short thinking. Fastest and cheapest.">Low</button>
+        <button type="button" class="opt" data-effort="medium" title="A balanced budget — enough to plan a move without spending the whole reply on it.">Medium</button>
         <button type="button" class="opt" data-effort="high" title="Long thinking. Slow, and it can burn the whole token budget before answering.">High</button>
       </div>
       <p class="hint" id="llmout"></p>
