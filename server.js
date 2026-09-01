@@ -9,6 +9,7 @@ const TYPES = {
   '.css': 'text/css; charset=utf-8',
   '.csv': 'text/csv; charset=utf-8',
   '.md': 'text/markdown; charset=utf-8',
+  '.svg': 'image/svg+xml',
 };
 
 createServer(async (req, res) => {
