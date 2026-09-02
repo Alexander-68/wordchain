@@ -700,8 +700,9 @@ $('start').textContent = 'Start game';
 // each vocabulary button says how many playable words it draws from, tiers being cumulative
 const playable = [...index.byStart.values()].flat().filter((w) => w.length >= 3).map((w) => index.words.get(w).tierIdx);
 $('stats').textContent = `${playable.length.toLocaleString()} playable nouns loaded.`;
-$('wordlist').textContent =
-  `Word list: SEN ${DATA.slice(4, -4)} — ${playable.length.toLocaleString()} playable single English nouns.`;
+$('wordlist').innerHTML =
+  `Word list: <a href="https://github.com/Alexander-68/english_nouns_dataset" target="_blank" rel="noopener">SEN ${DATA.slice(4, -4)}</a> — ${playable.length.toLocaleString()} playable single English nouns.<br>`
+  + `WordChain is open source on <a href="https://github.com/Alexander-68/wordchain" target="_blank" rel="noopener">GitHub</a>`;
 for (const btn of $('level').querySelectorAll('.opt'))
   btn.dataset.tip = `${playable.filter((t) => t <= +btn.dataset.tier).length.toLocaleString()} words`
     + ` — everything up to and including ${TIERS[+btn.dataset.tier].toLowerCase()} words.`
