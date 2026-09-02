@@ -66,6 +66,7 @@ function render() {
   $('pause').textContent = game.paused ? 'Play' : 'Pause';
   $('resign').textContent = game.ff ? 'Stop' : mode === 'cc' ? 'Fast-forward' : auto ? 'Stop game' : 'I lose';
   $('again').hidden = !game.over;
+  $('guide').hidden = mode === 'cc' || mode === 'cl';   // only a human needs the tactics
   if (human) $('word').focus();
 }
 
@@ -649,6 +650,25 @@ $('start').addEventListener('click', () => {
     for (const b of $('effort').children) b.classList.toggle('is-on', b.dataset.effort === effort);
     return $('llmbox').showModal();
   }
+  if (mode === 'hh' || mode === 'hc') return askNames();
+  begin();
+});
+
+/** Human players name themselves before the board appears; the names stick for the session. */
+function askNames() {
+  const solo = mode === 'hc';
+  $('name0').value = MODES[mode][0] === 'You' ? '' : MODES[mode][0];   // don't ask someone to accept "You" as a name
+  $('name1').value = MODES[mode][1];
+  $('name0').previousElementSibling.textContent = solo ? 'Your name' : 'Player 1';
+  $('name1').hidden = $('name1label').hidden = solo;
+  $('namebox').showModal();
+  $('name0').select();
+}
+
+$('nameform').addEventListener('submit', (e) => {
+  if (e.submitter?.value === 'cancel') return;
+  const named = (id, i) => $(id).value.trim() || MODES[mode][i];
+  MODES[mode] = [named('name0', 0), mode === 'hc' ? MODES[mode][1] : named('name1', 1)];
   begin();
 });
 
@@ -675,6 +695,11 @@ const markdown = (src) => src
     const head = block.match(/^(#{1,3}) (.*)$/);
     if (head) return `<h${head[1].length}>${head[2]}</h${head[1].length}>`;
     if (/^ {4}/.test(block)) return `<pre>${block.replace(/^ {4}/gm, '')}</pre>`;
+    if (/^\|/.test(block)) {                 // the guide is mostly tables; the separator row is decoration
+      const rows = block.split('\n').filter((l) => !/^\|[\s:|-]+\|$/.test(l));
+      return `<table>${rows.map((line, r) => `<tr>${line.replace(/^\||\|$/g, '').split('|')
+        .map((c) => `<t${r ? 'd' : 'h'}>${c.trim()}</t${r ? 'd' : 'h'}>`).join('')}</tr>`).join('')}</table>`;
+    }
     if (/^[-*] /.test(block))
       return `<ul>${block.split('\n').map((l) => `<li>${l.replace(/^[-*] /, '')}</li>`).join('')}</ul>`;
     return `<p>${block}</p>`;
@@ -684,13 +709,17 @@ const markdown = (src) => src
   .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
   .replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
 
-$('about').addEventListener('click', async () => {
-  if (!$('aboutbox').dataset.loaded) {
-    $('aboutmd').innerHTML = markdown(await (await fetch('ABOUT.md')).text());
-    $('aboutbox').dataset.loaded = '1';
+/** One dialog, two documents — fetched on first open and kept for the session. */
+async function openDoc(file) {
+  if ($('aboutbox').dataset.loaded !== file) {
+    $('aboutmd').innerHTML = markdown(await (await fetch(file)).text());
+    $('aboutbox').dataset.loaded = file;
   }
   $('aboutbox').showModal();
-});
+}
+
+$('about').addEventListener('click', () => openDoc('ABOUT.md'));
+$('guide').addEventListener('click', () => openDoc('GUIDE.md'));
 
 const csv = await (await fetch(`/data/${DATA}`)).text();
 index = buildIndex(csv);

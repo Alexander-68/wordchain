@@ -90,6 +90,9 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
 .md code { font-size: 13px; color: var(--accent); }
 .md pre { font-size: 13px; color: var(--dim); overflow-x: auto; }
 .md strong { color: var(--text); }
+.md table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+.md th, .md td { border: 1px solid var(--line); padding: 4px 8px; text-align: left; vertical-align: top; }
+.md th { color: var(--dim); font-weight: 400; }
 .hint { color: var(--dim); font-size: 15px; margin: 10px 0 0; text-align: center; font-variant-numeric: tabular-nums; }
 .hint a { color: var(--accent); }
 #checkout, #filecheckout { white-space: pre-line; overflow-wrap: anywhere; }
@@ -212,14 +215,14 @@ input:focus { outline: none; border-color: var(--accent2); box-shadow: var(--rin
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 
-#llmform { display: grid; gap: 6px; }
-#llmform label { font-size: 13px; color: var(--dim); margin-top: 8px; }
-#llmform input { width: 100%; }
+#llmform, #nameform { display: grid; gap: 6px; }
+#llmform label, #nameform label { font-size: 13px; color: var(--dim); margin-top: 8px; }
+#llmform input, #nameform input { width: 100%; }
 .urlrow { display: flex; gap: 8px; }
 .urlrow select {
   flex: none; padding: 12px 10px; font: inherit; color: var(--text);
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
 }
 .urlrow select:focus { outline: none; border-color: var(--accent2); box-shadow: var(--ring); }
-#llmform .solverow { margin-top: 14px; flex-wrap: wrap; }
-#llmform .solverow .primary { width: auto; padding: 12px 18px; }  /* .primary is width:100%, which overflows the row */
+#llmform .solverow, #nameform .solverow { margin-top: 14px; flex-wrap: wrap; }
+#llmform .solverow .primary, #nameform .solverow .primary { width: auto; padding: 12px 18px; }  /* .primary is width:100%, which overflows the row */

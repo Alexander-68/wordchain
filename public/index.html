@@ -93,7 +93,7 @@
       <div class="player" id="p1"><span class="name"></span><span class="think" hidden></span><span class="strikes"></span></div>
     </div>
 
-    <div class="chainhead"><span>Chain</span><span id="count">0 words</span></div>
+    <div class="chainhead"><span>Chain <button class="ghost small" id="guide" hidden>Guide</button></span><span id="count">0 words</span></div>
     <ol class="chain" id="chain"></ol>
 
     <div class="turn">
@@ -148,6 +148,19 @@
         <button class="primary" type="button" id="llmplay">Computer plays first</button>
         <button class="primary" type="button" id="llmplayfirst">LLM plays first</button>
         <button class="ghost" value="cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="namebox">
+    <form method="dialog" id="nameform">
+      <label for="name0">Player 1</label>
+      <input id="name0" maxlength="20" placeholder="You" spellcheck="false" autocapitalize="words">
+      <label for="name1" id="name1label">Player 2</label>
+      <input id="name1" maxlength="20" spellcheck="false" autocapitalize="words">
+      <div class="solverow">
+        <button class="primary" value="go">Start game</button>
+        <button class="ghost" value="cancel" formnovalidate>Cancel</button>
       </div>
     </form>
   </dialog>
