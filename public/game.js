@@ -718,6 +718,20 @@ async function openDoc(file) {
   $('aboutbox').showModal();
 }
 
+/** Simple view hides the computer-only modes, the Insane tier and the word tools. */
+function setLook(simple) {
+  document.body.classList.toggle('simple', simple);
+  $('look').textContent = simple ? 'Advanced view' : 'Simple view';
+  localStorage.setItem('look', simple ? 'simple' : 'advanced');
+  if (!simple) return;
+  // an option that just disappeared must not stay selected — click its replacement
+  if (mode === 'cc' || mode === 'cl') $('mode').querySelector('[data-mode="hc"]').click();
+  if (maxTierIdx === 5) $('level').querySelector('[data-tier="2"]').click();
+}
+
+$('look').addEventListener('click', () => setLook(!document.body.classList.contains('simple')));
+setLook(localStorage.getItem('look') !== 'advanced');   // simple by default
+
 $('about').addEventListener('click', () => openDoc('ABOUT.md'));
 $('guide').addEventListener('click', () => openDoc('GUIDE.md'));
 

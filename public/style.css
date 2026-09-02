@@ -60,6 +60,11 @@ footer { text-align: center; margin-top: 26px; }
 .field { margin-bottom: 18px; }
 label, .chainhead { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); }
 label { display: block; margin-bottom: 8px; }
+/* the button is taller than the label text — pull it back into the label's line so the
+   card's top padding and the gap down to the buttons stay even */
+.labelrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.labelrow label { margin-bottom: 0; }
+.labelrow button { margin: -7px 0; position: relative; top: -10px; }
 .opts { display: flex; gap: 8px; flex-wrap: wrap; }
 
 button { font: inherit; cursor: pointer; border-radius: 12px; transition: background .15s, color .15s, transform .1s, border-color .15s; }
@@ -112,6 +117,12 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
 }
 .clear:hover { color: var(--text); }
 .solverow button { flex: none; }
+
+/* Simple view: the two computer-only modes, the hardest vocabulary and the word tools go away. */
+body.simple #tools,
+body.simple [data-mode="cc"],
+body.simple [data-mode="cl"],
+body.simple [data-tier="5"] { display: none; }
 
 .players { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
 .player {

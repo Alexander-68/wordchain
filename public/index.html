@@ -7,7 +7,7 @@
 <link rel="icon" href="favicon.svg">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="simple">   <!-- simple by default; game.js swaps it if the visitor chose advanced -->
 <main class="app">
   <header>
     <h1>Word<span>Chain</span></h1>
@@ -18,7 +18,7 @@
   <div id="setup">
   <section class="card">
     <div class="field">
-      <label>Players</label>
+      <div class="labelrow"><label>Players</label><button class="ghost small" id="look">Advanced view</button></div>
       <div class="opts" id="mode">
         <button class="opt" data-mode="hh">Human vs Human</button>
         <button class="opt is-on" data-mode="hc">Human vs Computer</button>
@@ -49,7 +49,7 @@
     <button id="start" class="primary" disabled>Loading word list…</button>
   </section>
 
-  <section class="card">
+  <section class="card" id="tools">
     <div class="field">
       <label for="checkword">Word check</label>
       <div class="solverow">
