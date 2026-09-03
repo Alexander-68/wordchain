@@ -56,8 +56,8 @@ const bottom = (pairs) => pairs.slice(-5).reverse().map(([v, c]) => `${v} ${n(c)
 console.log(`starts | ${list(starts)} | ${bottom(starts)}`);
 console.log(`ends   | ${list(ends)} | ${bottom(ends)}`);
 const at = (pairs, l) => pairs.find(([v]) => v === l)?.[1] ?? 0;
-for (const l of ['c', 'e'])
-  console.log(`  ${l}: ${n(at(starts, l))} start with it, ${n(at(ends, l))} end with it`);
+console.log(`${n(at(ends, 'e'))} words end in \`e\` but only ${n(at(starts, 'e'))} start with it, so \`e\` is a sink;`
+  + ` \`c\` is a source (${n(at(starts, 'c'))} out, ${n(at(ends, 'c'))} in).`);
 
 // --- longest chain per vocabulary setting, and the optimality bound
 console.log('\n| vocabulary | words in the chain | runs |\n| --- | --- | --- |');
