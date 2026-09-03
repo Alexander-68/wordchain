@@ -84,7 +84,7 @@ and the transcript — every move, hint, rejection and strike, in the order they
 
 ## What counts as a word
 
-The word list is [SEN](../WordChain-dataset) (`data/sen-2026-09-02.csv`, 61,568 rows, 8.6 MB) — the
+The word list is [SEN](../WordChain-dataset) (`data/sen-2026-09-03.csv`, 63,311 rows, 8.9 MB) — the
 dataset ships rejected words too, each with a reason, so the referee can answer with more than
 "not found":
 
@@ -119,42 +119,42 @@ pointed at, so a chain can never hold both.
 
 ### The dataset, in numbers
 
-61,568 rows in, 51,977 marked `allowed=True`. The two house rules above take out 908 more, and the
-3-letter minimum another 81, leaving **50,988 playable words** (the 5 secondary spellings are
+63,311 rows in, 52,898 marked `allowed=True`. The two house rules above take out 885 more, and the
+3-letter minimum another 84, leaving **51,929 playable words** (the 9 secondary spellings are
 playable too, but count as their primary).
 
 | tier     | words  | cumulative | what the setting draws |
 | -------- | ------ | ---------- | ---------------------- |
 | CORE     | 445    | 445        |                        |
 | COMMON   | 2,365  | 2,810      | Common                 |
-| FAMILIAR | 7,035  | 9,845      | Familiar (default)     |
-| UNCOMMON | 12,015 | 21,860     |                        |
-| RARE     | 13,135 | 34,995     | Expert                 |
-| OBSCURE  | 15,993 | 50,988     | Insane                 |
+| FAMILIAR | 7,033  | 9,843      | Familiar (default)     |
+| UNCOMMON | 12,911 | 22,754     |                        |
+| RARE     | 13,156 | 35,910     | Expert                 |
+| OBSCURE  | 16,019 | 51,929     | Insane                 |
 
 Expert is everything but the obscure tail; Insane adds it. As of the 2026-09-01 dataset that tail is
-no longer a rounding error: `wordfreq` scores 15,993 real nouns at zero, some too new for the
+no longer a rounding error: `wordfreq` scores 16,019 real nouns at zero, some too new for the
 frequency tables (`lootbox`), some genuinely arcane (`ophicleide`), and the dataset now ships them
 playable rather than cut. Insane is a third of the list, so the two settings are far apart.
 
-The 9,591 rejected rows, by reason: verb 3,064 · spelling variant 1,625 · adjective 1,163 · proper
-noun 1,026 · British spelling 706 · inflected form 450 · not in Wiktionary 411 · plural-only 409 ·
-the rest 170 or fewer each. On top of those the house rules reject 437 verbs, 434 adjectives and 37
+The 10,413 rejected rows, by reason: verb 3,064 · spelling variant 1,625 · proper noun 1,316 ·
+adjective 1,163 + 460 reviewed · British spelling 704 · inflected form 450 · not in Wiktionary 411 ·
+plural-only 409 · the rest 291 or fewer each. On top of those the house rules reject 436 verbs, 425 adjectives and 24
 names that the dataset allows.
 
-Length runs 3–14+ letters, peaking at 8 (7,458 words); 3-letter words are the scarce ones (691).
-Mean Zipf frequency 1.69 — most of the list is rare vocabulary, which is why the default tier stops
+Length runs 3–14+ letters, peaking at 8 (7,647 words); 3-letter words are the scarce ones (695).
+Mean Zipf frequency 1.70 — most of the list is rare vocabulary, which is why the default tier stops
 at FAMILIAR.
 
 Starting letters are lopsided and ending letters more so, which is the whole shape of the game:
 
 |        | most                                            | fewest                               |
 | ------ | ----------------------------------------------- | ------------------------------------ |
-| starts | s 5,730 · c 5,165 · p 4,541 · a 3,311 · b 3,026 | z 176 · y 220 · x 237 · q 256 · j 417 |
-| ends   | e 8,487 · r 6,099 · n 5,752 · s 5,022 · y 4,675 | q 2 · j 3 · v 19 · z 68 · u 151      |
+| starts | s 5,818 · c 5,256 · p 4,605 · a 3,351 · b 3,107 | y 219 · z 229 · x 238 · q 259 · j 426 |
+| ends   | e 8,689 · r 6,178 · n 5,842 · s 5,054 · y 4,725 | q 2 · j 3 · v 19 · z 68 · u 157      |
 
-8,479 words end in `e` but only 1,961 start with it, so `e` is a sink; `c` is a source (5,164 out,
-407 in). That gap is exactly what caps the longest chain.
+8,689 words end in `e` but only 1,981 start with it, so `e` is a sink; `c` is a source (5,256 out,
+423 in). That gap is exactly what caps the longest chain.
 
 ## The longest possible chain
 
@@ -170,9 +170,9 @@ answer:
 | vocabulary | words in the chain | runs                   |
 | ---------- | ------------------ | ---------------------- |
 | Common     | 1,063              | job → nobody           |
-| Familiar   | 3,962              | biceps → xerox         |
-| Expert     | 15,781             | jackscrew → xerography |
-| Insane     | 23,420             | jilbab → revelry       |
+| Familiar   | 3,960              | biceps → xerox         |
+| Expert     | 16,192             | jackscrew → xenobiology |
+| Insane     | 23,914             | jilbab → repeatability |
 
 A pinned opening word outside the chosen vocabulary is refused rather than quietly widening it.
 
@@ -186,7 +186,7 @@ end letter), and each edge may be used once. `longestChain()` in `public/rules.j
 
 A pinned word is spent before step 1 and step 2 is told to leave the spare exit on the letter it
 ends with, so the trail resumes from there. Pinning costs a word or two: `cat`, `music` and `xylophone` reach
-23,418, `zebra` 23,419.
+23,912, `zebra` 23,913.
 
 ### Step 2 is a min-cost flow
 
@@ -206,14 +206,14 @@ Yes, on two conditions that hold here and are checked at runtime.
 
 The counting bound first: in any chain a letter is entered as many times as it is left, except once
 at each end, so every letter must leave at least `out(v) − in(v) − [v is the start]` of its words
-unplayed. The surpluses sum to 21,855, so at least 21,854 words are lost and no chain can beat
-50,988 − 21,854 = **29,134**. That bound is loose, because it assumes every surplus word can be
+unplayed. The surpluses sum to 22,285, so at least 22,284 words are lost and no chain can beat
+51,929 − 22,284 = **29,645**. That bound is loose, because it assumes every surplus word can be
 dropped on a letter that needs it — capacity says otherwise. The flow prices that in: its minimum
-is 27,568 deletions, which is the real floor, and `50,988 − 27,568 = 23,420` is the answer.
+is 28,015 deletions, which is the real floor, and `51,929 − 28,015 = 23,914` is the answer.
 
 The two conditions: the flow has to saturate every surplus (it does — the residual imbalance is
 exactly `j +1`, `y −1`, the trail's own ends), and the deletions must not strand a letter, since
-Hierholzer would then skip a piece of the graph (they don't — the walk consumes all 23,420
+Hierholzer would then skip a piece of the graph (they don't — the walk consumes all 23,914
 remaining words). If a future word list broke either, the result would be a valid chain but no
 longer a provably maximal one.
 
@@ -243,7 +243,7 @@ A new SEN drop is a new dated CSV. The numbers above are all derived from it, so
 | `public/game.js`                        | turns, strikes, rendering                                                           |
 | `public/index.html`, `public/style.css` | the UI                                                                              |
 | `public/ABOUT.md`                       | player-facing rules, shown in the About dialog                                      |
-| `data/sen-2026-09-02.csv`               | the word list, copied from `../WordChain-dataset`                                   |
+| `data/sen-2026-09-03.csv`               | the word list, copied from `../WordChain-dataset`                                   |
 | `test.js`                               | asserts the rules, plays a full computer-vs-computer game, checks the longest chain |
 | `tools/stats.js`                        | recomputes every word-list number quoted above, for a new dataset drop             |
 

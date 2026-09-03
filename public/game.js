@@ -1,7 +1,7 @@
 import { buildIndex, validate, pickMove, available, nearest, longestChain, mark, TIERS, MIN_LENGTH } from './rules.js';
 
 const $ = (id) => document.getElementById(id);
-const DATA = 'sen-2026-09-02.csv';                 // the word list; its date is the SEN version
+const DATA = 'sen-2026-09-03.csv';                 // the word list; its date is the SEN version
 const MODES = {
   hh: ['Player 1', 'Player 2'],
   hc: ['You', 'Computer'],

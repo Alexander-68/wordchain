@@ -4,18 +4,18 @@ You do not win by knowing more words. You win by knowing **which letter to hand 
 
 ## How many answers each letter has
 
-Playable nouns starting with each letter, from `data/sen-2026-09-02.csv` — the whole list, then the
+Playable nouns starting with each letter, from `data/sen-2026-09-03.csv` — the whole list, then the
 part an ordinary vocabulary actually reaches (CORE + COMMON + FAMILIAR):
 
-| letter | all | familiar |   | letter |  all | familiar |
-| ------ | --: | -------: | - | ------ | ---: | -------: |
-| **x**  | 237 |    **2** |   | v      |  819 |      167 |
-| **z**  | 176 |       22 |   | n      | 1175 |      178 |
-| **y**  | 220 |       39 |   | o      | 1172 |      195 |
-| **q**  | 256 |       40 |   | w      | 1135 |      252 |
-| **k**  | 651 |       88 |   | …      |      |          |
-| **u**  | 697 |       89 |   | c      | 5165 |     1057 |
-| **j**  | 417 |       94 |   | s      | 5730 |     1165 |
+| letter | all | familiar |     | letter | all  | familiar |
+| ------ | ---:| --------:| --- | ------ | ----:| --------:|
+| **x**  | 238 | **2**    |     | v      | 830  | 167      |
+| **z**  | 229 | 22       |     | n      | 1197 | 178      |
+| **y**  | 219 | 39       |     | o      | 1188 | 195      |
+| **q**  | 259 | 40       |     | w      | 1160 | 251      |
+| **k**  | 672 | 88       |     | …      |      |          |
+| **u**  | 719 | 89       |     | c      | 5256 | 1058     |
+| **j**  | 426 | 94       |     | s      | 5818 | 1165     |
 
 End a word in `e` and your opponent has 2,000 answers. End it in `x` and they have two.
 
@@ -33,34 +33,34 @@ A hard letter is not something to survive. It is a good chance to strike back:
 
 For each starting letter, **strongest first**: the words that hand back a hard letter.
 
-| start | words |
-| ----- | ----- |
-| a | army, ability, agency, activity, authority, attorney, assembly, academy, apex, appendix, annex, aux, attack, artwork, ark, audiobook, asterisk, airlock, adieu, amadou |
-| b | buzz, blitz, blintz, body, baby, boy, birthday, beauty, bay, battery, buddy, box, beeswax, borax, boombox, back, book, break, bank, block |
-| c | chintz, capiz, city, company, country, community, county, century, copy, capacity, complex, cox, climax, cortex, check, click, cook, clock, crack, creek |
-| d | ditz, day, duty, display, delivery, deputy, democracy, discovery, delay, detox, dex, duplex, dropbox, drink, desk, deck, duck, disk, dock, div |
-| e | ersatz, equinox, energy, economy, emergency, enemy, entry, equity, equality, essay, embassy, entity, envy, ecology, empathy, ecstasy, eternity, electricity, efficiency, epoxy, envoy |
-| f | fritz, fuzz, fizz, fez, family, fly, facility, factory, fantasy, frequency, fancy, faculty, fox, flex, flux, flax, frank, feedback, framework, folk |
-| g | geez, glitz, grosz, gigahertz, guy, gallery, glory, galaxy, gravity, grocery, gameplay, geography, gearbox, geek, gimmick, groundwork, glock, guidebook, gridlock, guru |
-| h | hertz, hafiz, history, henry, holiday, highway, hockey, honey, humanity, hurry, hoax, hex, helix, hotfix, hajj, hook, homework, hack, heck, handbook |
-| i | industry, injury, identity, inquiry, integrity, intensity, inventory, ideology, index, influx, inbox, intersex, ink, ilk, interlock, ironwork, inglenook, ironbark, impromptu, improv |
-| j | jinx, jukebox, jazz (just these 3, no need to learn more) |
-| k | kilohertz, kuvasz, key, keyway, kidney, kitty, kersey, kex, kylix, kick, knock, kirk, knack, kayak, kink, kiosk |
-| l | lutz, lady, library, legacy, luxury, liberty, laboratory, loyalty, liability, lex, latex, lux, lynx, link, lack, luck, lock, leak, landmark, lieu |
-| m | megahertz, may, money, majority, memory, ministry, mystery, minority, mercy, mix, max, matrix, mailbox, mark, milk, mask, monk, mack, malik |
-| n | nobody, navy, necessity, nursery, nationality, neutrality, novelty, nanny, nix, neocortex, narthex, nitrox, network, neck, nick, notebook, nook, needlework, nouveau |
-| o | okay, opportunity, obesity, observatory, odyssey, obituary, occupancy, oncology, onyx, oryx, outbox, oropharynx, oak, outlook, outbreak, overlook, outback, obelisk, otaku, ormolu |
-| p | prez, pizzazz, putz, play, party, policy, property, plenty, possibility, personality, philosophy, phoenix, prix, paradox, pax, park, pack, peak, punk, pork |
-| q | quiz, quartz (just these 2, no need to learn more) |
-| r | ritz, razz, razzmatazz, razzamatazz, reality, responsibility, ray, recovery, reply, railway, rugby, rally, remix, reflex, roux, reflux, raj, risk, rock, rank |
-| s | showbiz, spitz, spritz, swizz, story, study, security, society, safety, secretary, supply, somebody, six, sex, syntax, smallpox, stock, stick, shock |
-| t | topaz, terahertz, today, technology, theory, twenty, territory, turkey, therapy, thirty, tax, toolbox, thorax, tux, talk, track, task, truck, tank, trick |
-| u | university, utility, unity, uncertainty, urgency, uniformity, usability, upholstery, uptick, uplink, umiak, uptalk, ubuntu, uhuru |
-| v | vox, vortex, vertex, volvox, vernix, variety, victory, valley, velocity, vocabulary, vicinity, visibility |
-| w | waltz, wiz, wax, why, whiskey, warranty, weekday, winery, walkway, waterway, weaponry, whey, week, walk, wreck, wink, whack, wick, whisk, woodwork |
-| x | xerox, xerocopy, xerography, xenogamy, xenology, xenobiology, xenon, xanthan, xylan (keep xylophone to your opponent and respond with equinox) |
-| y | yutz, yesterday, yeomanry, yuppy, yabby, yewberry, yobbery, yex, yearbook, yak, yuck, yolk, yank, yew, yahoo, yen, yuan, yarn |
-| z | zizz, zoology, zany, zloty, zealotry, zoogeography, zax, zwieback, zhou, zaibatsu, zebu, zero, zoo, zorro, zippo, zeppelin, zillion, zircon, zooplankton |
+| start | words                                                                                                                                                                                                   |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| a     | army, ability, agency, activity, authority, attorney, assembly, academy, apex, appendix, annex, aux, attack, artwork, ark, audiobook, asterisk, airlock, adieu, amadou                                  |
+| b     | buzz, blitz, blintz, body, baby, boy, birthday, beauty, bay, battery, buddy, box, beeswax, borax, boombox, back, book, break, bank, block                                                               |
+| c     | chintz, capiz, city, company, country, community, county, century, copy, capacity, complex, cox, climax, cortex, check, click, cook, clock, crack, creek                                                |
+| d     | ditz, day, duty, display, delivery, deputy, democracy, discovery, delay, detox, dex, duplex, dropbox, drink, desk, deck, duck, disk, dock, div                                                          |
+| e     | ersatz, equinox, energy, economy, emergency, enemy, entry, equity, equality, essay, embassy, entity, envy, ecology, empathy, ecstasy, eternity, electricity, efficiency, epoxy, envoy                   |
+| f     | fritz, fuzz, fizz, fez, family, fly, facility, factory, fantasy, frequency, fancy, faculty, fox, flex, flux, flax, frank, feedback, framework, folk                                                     |
+| g     | geez, glitz, grosz, gigahertz, guy, gallery, glory, galaxy, gravity, grocery, gameplay, geography, gearbox, geek, gimmick, groundwork, glock, guidebook, gridlock, guru                                 |
+| h     | hertz, hafiz, history, henry, holiday, highway, hockey, honey, humanity, hurry, hoax, hex, helix, hotfix, hajj, hook, homework, hack, heck, handbook                                                    |
+| i     | industry, injury, identity, inquiry, integrity, intensity, inventory, ideology, index, influx, inbox, intersex, ink, ilk, interlock, ironwork, inglenook, ironbark, impromptu, improv                   |
+| j     | jinx, jukebox, jazz (just these 3, no need to learn more)                                                                                                                                               |
+| k     | kilohertz, kuvasz, key, keyway, kidney, kitty, kersey, kex, kylix, kick, knock, kirk, knack, kayak, kink, kiosk                                                                                         |
+| l     | lutz, lady, library, legacy, luxury, liberty, laboratory, loyalty, liability, lex, latex, lux, lynx, link, lack, luck, lock, leak, landmark, lieu                                                       |
+| m     | megahertz, may, money, majority, memory, ministry, mystery, minority, mercy, mix, max, matrix, mailbox, mark, milk, mask, monk, mack, malik                                                             |
+| n     | nobody, navy, necessity, nursery, nationality, neutrality, novelty, nanny, nix, neocortex, narthex, nitrox, network, neck, nick, notebook, nook, needlework, nouveau                                    |
+| o     | okay, opportunity, obesity, observatory, odyssey, obituary, occupancy, oncology, onyx, oryx, outbox, oropharynx, oak, outlook, outbreak, overlook, outback, obelisk, otaku, ormolu                      |
+| p     | prez, pizzazz, putz, play, party, policy, property, plenty, possibility, personality, philosophy, phoenix, prix, paradox, pax, park, pack, peak, punk, pork                                             |
+| q     | quiz, quartz (just these 2, no need to learn more)                                                                                                                                                      |
+| r     | ritz, razz, razzmatazz, razzamatazz, reality, responsibility, ray, recovery, reply, railway, rugby, rally, remix, reflex, roux, reflux, raj, risk, rock, rank                                           |
+| s     | showbiz, spitz, spritz, swizz, story, study, security, society, safety, secretary, supply, somebody, six, sex, syntax, smallpox, stock, stick, shock                                                    |
+| t     | topaz, terahertz, today, technology, theory, twenty, territory, turkey, therapy, thirty, tax, toolbox, thorax, tux, talk, track, task, truck, tank, trick                                               |
+| u     | university, utility, unity, uncertainty, urgency, uniformity, usability, upholstery, uptick, uplink, umiak, uptalk, ubuntu, uhuru                                                                       |
+| v     | vox, vortex, vertex, volvox, vernix, variety, victory, valley, velocity, vocabulary, vicinity, visibility                                                                                               |
+| w     | waltz, wiz, wax, why, whiskey, warranty, weekday, winery, walkway, waterway, weaponry, whey, week, walk, wreck, wink, whack, wick, whisk, woodwork                                                      |
+| x     | xerox, xerocopy, xerography, xenogamy, xenology, xenobiology, xenon, xanthan, xylan (keep xylophone to your opponent and respond with equinox)                                                          |
+| y     | yutz, yesterday, yeomanry, yuppy, yabby, yewberry, yobbery, yex, yearbook, yak, yuck, yolk, yank, yew, yahoo, yen, yuan, yarn                                                                           |
+| z     | zizz, zonkey, zoology, zythology, zany, zloty, zealotry, zoogeography, zax, zwieback, zhou, zaibatsu, zebu, zero, zoo, zorro, zippo, zeppelin, zillion, zircon, zooplankton |
 
 ## What not to do
 
