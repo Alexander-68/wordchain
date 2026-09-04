@@ -1,5 +1,7 @@
 # WordChain
 
+[Try now](https://wordchain.a-68.workers.dev/)
+
 A word-chain game in the browser. Each player names a **singular English noun** starting with the
 last letter of the previous word — `cat → tiger → river → ...`. Three letters or more, no repeats. The computer referees
 every move and says *why* a word is rejected.
