@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { buildIndex, validate, pickMove, nearest, longestChain, mark } from './public/rules.js';
 
-const index = buildIndex(readFileSync('data/sen-2026-09-03.csv', 'utf8'));
+const index = buildIndex(readFileSync('public/data/sen-2026-09-03.csv', 'utf8'));
 const used = new Set(['dog']);
 const at = (lastLetter) => ({ index, lastLetter, used });
 

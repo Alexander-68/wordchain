@@ -84,7 +84,7 @@ and the transcript — every move, hint, rejection and strike, in the order they
 
 ## What counts as a word
 
-The word list is [SEN](../WordChain-dataset) (`data/sen-2026-09-03.csv`, 63,311 rows, 8.9 MB) — the
+The word list is [SEN](../WordChain-dataset) (`public/data/sen-2026-09-03.csv`, 63,311 rows, 8.9 MB) — the
 dataset ships rejected words too, each with a reason, so the referee can answer with more than
 "not found":
 
@@ -221,7 +221,7 @@ longer a provably maximal one.
 
 A new SEN drop is a new dated CSV. The numbers above are all derived from it, so they move too:
 
-1. Copy the file in: `cp ../WordChain-dataset/sen-YYYY-MM-DD.csv data/` and delete the old one.
+1. Copy the file in: `cp ../WordChain-dataset/sen-YYYY-MM-DD.csv public/data/` and delete the old one.
 2. Point the three references at it — `DATA` in `public/game.js`, the `readFileSync` in `test.js`,
    and the file table below.
 3. `node test.js` — the rules, a full self-play game and the longest chain all run against the new
@@ -243,7 +243,7 @@ A new SEN drop is a new dated CSV. The numbers above are all derived from it, so
 | `public/game.js`                        | turns, strikes, rendering                                                           |
 | `public/index.html`, `public/style.css` | the UI                                                                              |
 | `public/ABOUT.md`                       | player-facing rules, shown in the About dialog                                      |
-| `data/sen-2026-09-03.csv`               | the word list, copied from `../WordChain-dataset`                                   |
+| `public/data/sen-2026-09-03.csv`               | the word list, copied from `../WordChain-dataset`                                   |
 | `test.js`                               | asserts the rules, plays a full computer-vs-computer game, checks the longest chain |
 | `tools/stats.js`                        | recomputes every word-list number quoted above, for a new dataset drop             |
 

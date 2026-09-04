@@ -17,7 +17,7 @@ createServer(async (req, res) => {
   const path = url.pathname === '/' ? '/index.html' : decodeURIComponent(url.pathname);
   const rel = path.slice(1);
   const ok = /^[\w./-]+$/.test(rel) && !rel.includes('..');   // stay inside the project dir
-  const file = join(process.cwd(), rel.startsWith('data/') ? rel : join('public', rel));
+  const file = join(process.cwd(), 'public', rel);
   try {
     if (!ok) throw new Error('bad path');
     const body = await readFile(file);

@@ -4,7 +4,7 @@
 import { readFileSync, statSync } from 'node:fs';
 import { parseCSV, buildIndex, longestChain, MIN_LENGTH, TIERS } from '../public/rules.js';
 
-const file = process.argv[2] ?? `data/${readFileSync('public/game.js', 'utf8').match(/DATA = '([^']+)'/)[1]}`;
+const file = process.argv[2] ?? `public/data/${readFileSync('public/game.js', 'utf8').match(/DATA = '([^']+)'/)[1]}`;
 const csv = readFileSync(file, 'utf8');
 const rows = parseCSV(csv);
 const h = Object.fromEntries(rows[0].map((name, i) => [name, i]));
